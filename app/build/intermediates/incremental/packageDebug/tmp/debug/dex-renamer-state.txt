@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+#Thu Oct 02 01:03:24 IST 2025
+base.0=C\:\\Users\\sreer\\AndroidStudioProjects\\dummy1\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
+base.1=C\:\\Users\\sreer\\AndroidStudioProjects\\dummy1\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
+base.2=C\:\\Users\\sreer\\AndroidStudioProjects\\dummy1\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\6\\classes.dex
+base.3=C\:\\Users\\sreer\\AndroidStudioProjects\\dummy1\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\8\\classes.dex
+base.4=C\:\\Users\\sreer\\AndroidStudioProjects\\dummy1\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes2.dex
+base.5=C\:\\Users\\sreer\\AndroidStudioProjects\\dummy1\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes3.dex
+base.6=C\:\\Users\\sreer\\AndroidStudioProjects\\dummy1\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes4.dex
+=======
 #Wed Oct 01 23:26:31 IST 2025
 base.0=C\:\\Users\\JAYAMOHAN RS\\StudioProjects\\Unishare\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
 base.1=C\:\\Users\\JAYAMOHAN RS\\StudioProjects\\Unishare\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
@@ -6,6 +16,7 @@ base.3=C\:\\Users\\JAYAMOHAN RS\\StudioProjects\\Unishare\\app\\build\\intermedi
 base.4=C\:\\Users\\JAYAMOHAN RS\\StudioProjects\\Unishare\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes2.dex
 base.5=C\:\\Users\\JAYAMOHAN RS\\StudioProjects\\Unishare\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes3.dex
 base.6=C\:\\Users\\JAYAMOHAN RS\\StudioProjects\\Unishare\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes4.dex
+>>>>>>> origin/Home_Page
 path.0=classes.dex
 path.1=0/classes.dex
 path.2=6/classes.dex

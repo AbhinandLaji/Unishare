@@ -57,7 +57,7 @@ import kotlin.math.*
 class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Get the email passed from MainActivity
         val userEmail = intent.getStringExtra("USER_EMAIL") ?: "Welcome!"
 
@@ -120,7 +120,7 @@ fun CustomTopBar(scrollBehavior: TopAppBarScrollBehavior?, currentRoute: String?
         Screen.Home.route -> userEmail
         else -> null
     }
-    
+
     // This gives us access to the Android system to start a new activity
     val context = LocalContext.current
 
@@ -153,7 +153,7 @@ fun CustomTopBar(scrollBehavior: TopAppBarScrollBehavior?, currentRoute: String?
                 // --- END OF CHAT BUTTON CODE ---
 
                 Spacer(modifier = Modifier.width(8.dp))
-                
+
                 IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
                     Icon(
                         imageVector = Icons.Filled.Person,
@@ -524,7 +524,7 @@ fun SmoothGooeyBottomNav(navController: NavHostController) {
                             tint = if (isSelected) Color(0xFF0000FF) else Color.Gray,
                             modifier = Modifier.size(if (isSelected) 26.dp else 22.dp)
                         )
-                        
+
                         SmoothParticleEffect(isSelected)
                     }
 
@@ -601,7 +601,7 @@ fun DrawScope.drawSmoothBlob(
             if (i == 0) {
                 moveTo(x, y)
             }
-            
+
             val controlAngle = angle + angleStep / 2
             val controlRadius = radius * 1.1f
             val controlX = center.x + controlRadius * cos(controlAngle).toFloat()

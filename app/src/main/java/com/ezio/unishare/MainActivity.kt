@@ -13,17 +13,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputLayout
-import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var firebaseAuth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        firebaseAuth = FirebaseAuth.getInstance()
 
         // --- Find Views ---
         val collegeMailEditText = findViewById<EditText>(R.id.editTextName)
@@ -51,7 +47,7 @@ class MainActivity : AppCompatActivity() {
         addTextWatcherToClearError(collegeMailEditText, collegeMailLayout)
         addTextWatcherToClearError(passwordEditText, passwordLayout)
 
-        // --- Login Button Logic ---
+        // --- LOGIN BUTTON ---
         joinButton.setOnClickListener {
             val email = collegeMailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
@@ -76,28 +72,47 @@ class MainActivity : AppCompatActivity() {
 
             if (!isValid) return@setOnClickListener
 
-            // --- USE FIREBASE AUTH TO SIGN IN ---
-            firebaseAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this) { task ->
-                    if (task.isSuccessful) {
-                        // Sign in success, update UI and navigate
-                        Log.d("AUTH", "signInWithEmail:success")
-                        Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
+            // --- Check password from Realtime Database ---
+            val database = FirebaseDatabase.getInstance()
+            val usersRef = database.getReference("users")
+            val emailKey = email.replace(".", "_") // same format as you save
 
+            usersRef.child(emailKey).get().addOnSuccessListener { snapshot ->
+                if (snapshot.exists()) {
+                    val storedPassword = snapshot.child("password").getValue(String::class.java)
+                    if (storedPassword == password) {
+                        Toast.makeText(this, "Login successful ✅", Toast.LENGTH_SHORT).show()
+                        Log.d("Login", "User $email logged in successfully")
+
+                        // ✅ Save session in SharedPreferences
+                        val sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE)
+                        sharedPref.edit().apply {
+                            putBoolean("isLoggedIn", true)
+                            putString("userEmail", email)
+                            apply()
+                        }
+
+                        // Navigate to Home
                         val intent = Intent(this, HomeActivity::class.java).apply {
                             putExtra("USER_EMAIL", email)
                         }
                         startActivity(intent)
                         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                        finish() // Prevent user from coming back to login screen
+                        finish()
                     } else {
-                        // If sign in fails, display a message to the user.
-                        Log.w("AUTH", "signInWithEmail:failure", task.exception)
-                        Toast.makeText(baseContext, "Authentication failed. Check credentials.", Toast.LENGTH_SHORT).show()
-                        passwordLayout.error = "Invalid email or password"
+                        passwordLayout.error = "Invalid password!"
                         passwordLayout.startAnimation(shakeAnimation)
+                        Toast.makeText(this, "Invalid password!", Toast.LENGTH_LONG).show()
                     }
+                } else {
+                    collegeMailLayout.error = "Invalid email!"
+                    collegeMailLayout.startAnimation(shakeAnimation)
+                    Toast.makeText(this, "Invalid email!", Toast.LENGTH_LONG).show()
                 }
+            }.addOnFailureListener { e ->
+                Toast.makeText(this, "Database error: ${e.message}", Toast.LENGTH_LONG).show()
+                Log.e("Login", "Error reading DB", e)
+            }
         }
 
         // --- Navigation to other activities ---
@@ -112,4 +127,3 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-

@@ -9,7 +9,6 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.auth.FirebaseAuth
 
 class SplashActivity : AppCompatActivity() {
 
@@ -23,7 +22,8 @@ class SplashActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.insetsController?.let {
                 it.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                it.systemBarsBehavior =
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             }
         } else {
             @Suppress("DEPRECATION")
@@ -34,25 +34,25 @@ class SplashActivity : AppCompatActivity() {
         }
 
         Handler(Looper.getMainLooper()).postDelayed({
-            // --- THIS IS THE KEY LOGIC ---
-            val firebaseAuth = FirebaseAuth.getInstance()
-            val currentUser = firebaseAuth.currentUser
+            // --- Session Check using SharedPreferences ---
+            val sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE)
+            val isLoggedIn = sharedPref.getBoolean("isLoggedIn", false)
+            val userEmail = sharedPref.getString("userEmail", null)
 
-            if (currentUser != null) {
-                // User is already logged in, go directly to HomeActivity
+            if (isLoggedIn && userEmail != null) {
+                // User already logged in → Go to HomeActivity
                 val intent = Intent(this@SplashActivity, HomeActivity::class.java).apply {
-                    // Pass the already logged-in user's email
-                    putExtra("USER_EMAIL", currentUser.email)
+                    putExtra("USER_EMAIL", userEmail)
                 }
                 startActivity(intent)
             } else {
-                // No user is logged in, go to the MainActivity (Login Screen)
+                // User not logged in → Go to Login
                 val intent = Intent(this@SplashActivity, MainActivity::class.java)
                 startActivity(intent)
             }
-            
+
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-            finish() // Call finish to remove SplashActivity from the back stack
+            finish() // remove splash from back stack
         }, splashTimeOut)
     }
 }

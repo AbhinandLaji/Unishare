@@ -1,70 +1,70 @@
-com.ezio.unishare.app-jetified-activity-ktx-1.8.0-0 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\0186eadbb7baf1efaed4a4bd4c762ff1\transformed\jetified-activity-ktx-1.8.0\res
-com.ezio.unishare.app-appcompat-1.6.1-1 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\0b53cfdd9796c5ef4f4d0616eb99d5e1\transformed\appcompat-1.6.1\res
-com.ezio.unishare.app-jetified-foundation-release-2 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\0c0e3f2bd0ef929579afdb9b8a499886\transformed\jetified-foundation-release\res
-com.ezio.unishare.app-core-runtime-2.2.0-3 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\170a142a39ccf247daf85d44f603f27b\transformed\core-runtime-2.2.0\res
-com.ezio.unishare.app-jetified-ui-tooling-preview-release-4 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\18c863e95d087b6bf0ce4d5639c1fe01\transformed\jetified-ui-tooling-preview-release\res
-com.ezio.unishare.app-fragment-1.3.6-5 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\1a05154fc09880143df109435113e8b5\transformed\fragment-1.3.6\res
-com.ezio.unishare.app-jetified-customview-poolingcontainer-1.0.0-6 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\1a66fe3f2a0f532d8b24be0d5b77a99b\transformed\jetified-customview-poolingcontainer-1.0.0\res
-com.ezio.unishare.app-jetified-ui-release-7 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\1aee4ef1f9b6a09b3b3f37db8843d2a5\transformed\jetified-ui-release\res
-com.ezio.unishare.app-jetified-runtime-release-8 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\1d0ac156c002f0156b4f567070cd3609\transformed\jetified-runtime-release\res
-com.ezio.unishare.app-browser-1.4.0-9 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\1e375de9acfe8cdd34fc659e871d8f23\transformed\browser-1.4.0\res
-com.ezio.unishare.app-jetified-coil-base-2.6.0-10 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\20509150c8c2548f19c0951876aeadb4\transformed\jetified-coil-base-2.6.0\res
-com.ezio.unishare.app-jetified-core-ktx-1.12.0-11 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\25c63aa5aa6e7ee007971e4687f0d85d\transformed\jetified-core-ktx-1.12.0\res
-com.ezio.unishare.app-jetified-play-services-basement-18.3.0-12 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\295bbe9715ae85f99eed6b6e15cad782\transformed\jetified-play-services-basement-18.3.0\res
-com.ezio.unishare.app-jetified-lifecycle-livedata-core-ktx-2.7.0-13 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\2a9df6a6b42fb7d7704fd7465d110c98\transformed\jetified-lifecycle-livedata-core-ktx-2.7.0\res
-com.ezio.unishare.app-jetified-ui-geometry-release-14 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\2c9e81fdcb443ee960d222d6e3ef2e72\transformed\jetified-ui-geometry-release\res
-com.ezio.unishare.app-jetified-lifecycle-runtime-ktx-2.7.0-15 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\324d34eb8def5472e64f537f2aea201c\transformed\jetified-lifecycle-runtime-ktx-2.7.0\res
-com.ezio.unishare.app-jetified-play-services-base-18.1.0-16 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\341f8dbff815b100cc95f54d4c6a1c15\transformed\jetified-play-services-base-18.1.0\res
-com.ezio.unishare.app-constraintlayout-2.0.1-17 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\390847c3a27795f63650936371364d33\transformed\constraintlayout-2.0.1\res
-com.ezio.unishare.app-cardview-1.0.0-18 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\3da464fb5dbcd52acaa7819fd5d6ef3a\transformed\cardview-1.0.0\res
-com.ezio.unishare.app-drawerlayout-1.1.1-19 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\405cdca77f28dcf0bac5275981a00dfa\transformed\drawerlayout-1.1.1\res
-com.ezio.unishare.app-jetified-lifecycle-viewmodel-savedstate-2.7.0-20 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\423932bf645645ceef5bb95621e0482e\transformed\jetified-lifecycle-viewmodel-savedstate-2.7.0\res
-com.ezio.unishare.app-jetified-startup-runtime-1.1.1-21 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\426f139a4531c4704cfb225f730b16c1\transformed\jetified-startup-runtime-1.1.1\res
-com.ezio.unishare.app-jetified-animation-core-release-22 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\47e6d98a6ea69adcea21f2e38aac7917\transformed\jetified-animation-core-release\res
-com.ezio.unishare.app-jetified-material-ripple-release-23 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\4938e6470c6271dfb3a88a346a14e286\transformed\jetified-material-ripple-release\res
-com.ezio.unishare.app-jetified-ui-util-release-24 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\5162bd2526464ce87d0fb82982a80490\transformed\jetified-ui-util-release\res
-com.ezio.unishare.app-jetified-savedstate-1.2.1-25 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\51c90c738cc3e2c4dbe63c8af9dda405\transformed\jetified-savedstate-1.2.1\res
-com.ezio.unishare.app-jetified-profileinstaller-1.3.1-26 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\56029e2f89fafac04afd7a33c344996b\transformed\jetified-profileinstaller-1.3.1\res
-com.ezio.unishare.app-core-1.12.0-27 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\56446583c8916a377770844f2a14a0bd\transformed\core-1.12.0\res
-com.ezio.unishare.app-jetified-emoji2-1.3.0-28 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\567c060f0ed628eee85ca8ba548cd4d8\transformed\jetified-emoji2-1.3.0\res
-com.ezio.unishare.app-jetified-ui-graphics-release-29 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\5756e27e5d95d7b210d3df5074ebbb77\transformed\jetified-ui-graphics-release\res
-com.ezio.unishare.app-jetified-viewpager2-1.0.0-30 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\576d3ebe12db71b8c739db4091dd7a4a\transformed\jetified-viewpager2-1.0.0\res
-com.ezio.unishare.app-navigation-common-ktx-2.7.7-31 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\5a03764b3977a2c43c2d7464a578cd9d\transformed\navigation-common-ktx-2.7.7\res
-com.ezio.unishare.app-jetified-animation-release-32 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\6a5dc08d3c6b4038f58dfdb6b19ec51b\transformed\jetified-animation-release\res
-com.ezio.unishare.app-recyclerview-1.1.0-33 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\6eadaea63804f7c12795db978899efca\transformed\recyclerview-1.1.0\res
-com.ezio.unishare.app-jetified-runtime-saveable-release-34 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\76881aa7dbc471886e7456d16427192c\transformed\jetified-runtime-saveable-release\res
-com.ezio.unishare.app-jetified-foundation-layout-release-35 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\7c534632ce050ffc1d342cc60468151a\transformed\jetified-foundation-layout-release\res
-com.ezio.unishare.app-jetified-ui-text-release-36 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\88e5cf3b0d2ec37f4da1eff92afa6ab3\transformed\jetified-ui-text-release\res
-com.ezio.unishare.app-navigation-runtime-ktx-2.7.7-37 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\960e5483fefdd1ee2eeb33eaa573f698\transformed\navigation-runtime-ktx-2.7.7\res
-com.ezio.unishare.app-material-1.11.0-38 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\992af5e9d91067510230a3c79cbf24ee\transformed\material-1.11.0\res
-com.ezio.unishare.app-jetified-activity-compose-1.8.0-39 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\9bbb2fc7d8ed851560c7eceb80accba5\transformed\jetified-activity-compose-1.8.0\res
-com.ezio.unishare.app-lifecycle-livedata-2.7.0-40 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\9e2c131b2edb5a764a6275aa8cf87944\transformed\lifecycle-livedata-2.7.0\res
-com.ezio.unishare.app-coordinatorlayout-1.1.0-41 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\a3ba7c70cc3ee08135bfa02002476154\transformed\coordinatorlayout-1.1.0\res
-com.ezio.unishare.app-jetified-lifecycle-viewmodel-ktx-2.7.0-42 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\a9bff691683ccb57a9fbaab3906c43c9\transformed\jetified-lifecycle-viewmodel-ktx-2.7.0\res
-com.ezio.unishare.app-jetified-savedstate-ktx-1.2.1-43 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\c84529285e4e2eb3555eb01d9ea017a7\transformed\jetified-savedstate-ktx-1.2.1\res
-com.ezio.unishare.app-lifecycle-runtime-2.7.0-44 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\c861122ff62cecaceceaf5d59da57323\transformed\lifecycle-runtime-2.7.0\res
-com.ezio.unishare.app-lifecycle-viewmodel-2.7.0-45 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\cd51cfb274f06afc5c1185e9f9949d2e\transformed\lifecycle-viewmodel-2.7.0\res
-com.ezio.unishare.app-jetified-material-icons-extended-release-46 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\d24cfc9fa64d938cb4f0b43396bdcade\transformed\jetified-material-icons-extended-release\res
-com.ezio.unishare.app-navigation-runtime-2.7.7-47 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\d299dec00768ddbc55a9cfc5efe2d404\transformed\navigation-runtime-2.7.7\res
-com.ezio.unishare.app-jetified-activity-1.8.0-48 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\d3fbc7664208331a1b00390c06fa2c9f\transformed\jetified-activity-1.8.0\res
-com.ezio.unishare.app-jetified-appcompat-resources-1.6.1-49 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\d7c181ebf156d9482e203ed62b7362bd\transformed\jetified-appcompat-resources-1.6.1\res
-com.ezio.unishare.app-jetified-lifecycle-viewmodel-compose-2.7.0-50 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\d7cb020b488c62972494d48c3e5ddfbd\transformed\jetified-lifecycle-viewmodel-compose-2.7.0\res
-com.ezio.unishare.app-jetified-lifecycle-process-2.7.0-51 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\deac27babb6458905543a75dccb61fa9\transformed\jetified-lifecycle-process-2.7.0\res
-com.ezio.unishare.app-jetified-firebase-common-20.4.2-52 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\e2d16d14c0a71766d625045ac447ab6a\transformed\jetified-firebase-common-20.4.2\res
-com.ezio.unishare.app-jetified-material-icons-core-release-53 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\e300eb90b95cc6988db9cc9b204e3dd9\transformed\jetified-material-icons-core-release\res
-com.ezio.unishare.app-jetified-ui-unit-release-54 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\e32c5b48bd3590369a7f7154ebd7a250\transformed\jetified-ui-unit-release\res
-com.ezio.unishare.app-jetified-emoji2-views-helper-1.3.0-55 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\e76440b9198b10305d091a5e22c74d28\transformed\jetified-emoji2-views-helper-1.3.0\res
-com.ezio.unishare.app-transition-1.2.0-56 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\eefc7b3b1535d8e8f081ef17832413cd\transformed\transition-1.2.0\res
-com.ezio.unishare.app-jetified-navigation-compose-2.7.7-57 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\ef7687ad924ce688ef61f0b1ca6ff518\transformed\jetified-navigation-compose-2.7.7\res
-com.ezio.unishare.app-jetified-material3-release-58 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\f288803b8a4c4042a908ea6d4cb9c9b8\transformed\jetified-material3-release\res
-com.ezio.unishare.app-navigation-common-2.7.7-59 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\fa6400d89731df78a1bcab5e70d51d31\transformed\navigation-common-2.7.7\res
-com.ezio.unishare.app-jetified-annotation-experimental-1.4.0-60 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\fa7ec0ff0122816bc0b9efc1ed72d8cd\transformed\jetified-annotation-experimental-1.4.0\res
-com.ezio.unishare.app-lifecycle-livedata-core-2.7.0-61 C:\Users\JAYAMOHAN RS\.gradle\caches\9.0-milestone-1\transforms\faa55a31446862bcf88ed9239f44d411\transformed\lifecycle-livedata-core-2.7.0\res
-com.ezio.unishare.app-res-62 C:\Users\JAYAMOHAN RS\StudioProjects\Unishare\app\build\generated\res\processDebugGoogleServices
-com.ezio.unishare.app-resValues-63 C:\Users\JAYAMOHAN RS\StudioProjects\Unishare\app\build\generated\res\resValues\debug
-com.ezio.unishare.app-updated_navigation_xml-64 C:\Users\JAYAMOHAN RS\StudioProjects\Unishare\app\build\generated\updated_navigation_xml\debug
-com.ezio.unishare.app-packageDebugResources-65 C:\Users\JAYAMOHAN RS\StudioProjects\Unishare\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
-com.ezio.unishare.app-packageDebugResources-66 C:\Users\JAYAMOHAN RS\StudioProjects\Unishare\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
-com.ezio.unishare.app-debug-67 C:\Users\JAYAMOHAN RS\StudioProjects\Unishare\app\build\intermediates\merged_res\debug\mergeDebugResources
-com.ezio.unishare.app-debug-68 C:\Users\JAYAMOHAN RS\StudioProjects\Unishare\app\src\debug\res
-com.ezio.unishare.app-main-69 C:\Users\JAYAMOHAN RS\StudioProjects\Unishare\app\src\main\res
+com.ezio.unishare.app-jetified-activity-ktx-1.8.0-0 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\0186eadbb7baf1efaed4a4bd4c762ff1\transformed\jetified-activity-ktx-1.8.0\res
+com.ezio.unishare.app-appcompat-1.6.1-1 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\0b53cfdd9796c5ef4f4d0616eb99d5e1\transformed\appcompat-1.6.1\res
+com.ezio.unishare.app-jetified-foundation-release-2 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\0c0e3f2bd0ef929579afdb9b8a499886\transformed\jetified-foundation-release\res
+com.ezio.unishare.app-core-runtime-2.2.0-3 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\170a142a39ccf247daf85d44f603f27b\transformed\core-runtime-2.2.0\res
+com.ezio.unishare.app-jetified-ui-tooling-preview-release-4 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\18c863e95d087b6bf0ce4d5639c1fe01\transformed\jetified-ui-tooling-preview-release\res
+com.ezio.unishare.app-fragment-1.3.6-5 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\1a05154fc09880143df109435113e8b5\transformed\fragment-1.3.6\res
+com.ezio.unishare.app-jetified-customview-poolingcontainer-1.0.0-6 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\1a66fe3f2a0f532d8b24be0d5b77a99b\transformed\jetified-customview-poolingcontainer-1.0.0\res
+com.ezio.unishare.app-jetified-ui-release-7 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\1aee4ef1f9b6a09b3b3f37db8843d2a5\transformed\jetified-ui-release\res
+com.ezio.unishare.app-jetified-runtime-release-8 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\1d0ac156c002f0156b4f567070cd3609\transformed\jetified-runtime-release\res
+com.ezio.unishare.app-browser-1.4.0-9 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\1e375de9acfe8cdd34fc659e871d8f23\transformed\browser-1.4.0\res
+com.ezio.unishare.app-jetified-coil-base-2.6.0-10 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\20509150c8c2548f19c0951876aeadb4\transformed\jetified-coil-base-2.6.0\res
+com.ezio.unishare.app-jetified-core-ktx-1.12.0-11 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\25c63aa5aa6e7ee007971e4687f0d85d\transformed\jetified-core-ktx-1.12.0\res
+com.ezio.unishare.app-jetified-play-services-basement-18.3.0-12 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\295bbe9715ae85f99eed6b6e15cad782\transformed\jetified-play-services-basement-18.3.0\res
+com.ezio.unishare.app-jetified-lifecycle-livedata-core-ktx-2.7.0-13 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\2a9df6a6b42fb7d7704fd7465d110c98\transformed\jetified-lifecycle-livedata-core-ktx-2.7.0\res
+com.ezio.unishare.app-jetified-ui-geometry-release-14 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\2c9e81fdcb443ee960d222d6e3ef2e72\transformed\jetified-ui-geometry-release\res
+com.ezio.unishare.app-jetified-lifecycle-runtime-ktx-2.7.0-15 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\324d34eb8def5472e64f537f2aea201c\transformed\jetified-lifecycle-runtime-ktx-2.7.0\res
+com.ezio.unishare.app-jetified-play-services-base-18.1.0-16 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\341f8dbff815b100cc95f54d4c6a1c15\transformed\jetified-play-services-base-18.1.0\res
+com.ezio.unishare.app-constraintlayout-2.0.1-17 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\390847c3a27795f63650936371364d33\transformed\constraintlayout-2.0.1\res
+com.ezio.unishare.app-cardview-1.0.0-18 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\3da464fb5dbcd52acaa7819fd5d6ef3a\transformed\cardview-1.0.0\res
+com.ezio.unishare.app-drawerlayout-1.1.1-19 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\405cdca77f28dcf0bac5275981a00dfa\transformed\drawerlayout-1.1.1\res
+com.ezio.unishare.app-jetified-lifecycle-viewmodel-savedstate-2.7.0-20 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\423932bf645645ceef5bb95621e0482e\transformed\jetified-lifecycle-viewmodel-savedstate-2.7.0\res
+com.ezio.unishare.app-jetified-startup-runtime-1.1.1-21 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\426f139a4531c4704cfb225f730b16c1\transformed\jetified-startup-runtime-1.1.1\res
+com.ezio.unishare.app-jetified-animation-core-release-22 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\47e6d98a6ea69adcea21f2e38aac7917\transformed\jetified-animation-core-release\res
+com.ezio.unishare.app-jetified-material-ripple-release-23 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\4938e6470c6271dfb3a88a346a14e286\transformed\jetified-material-ripple-release\res
+com.ezio.unishare.app-jetified-ui-util-release-24 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\5162bd2526464ce87d0fb82982a80490\transformed\jetified-ui-util-release\res
+com.ezio.unishare.app-jetified-savedstate-1.2.1-25 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\51c90c738cc3e2c4dbe63c8af9dda405\transformed\jetified-savedstate-1.2.1\res
+com.ezio.unishare.app-jetified-profileinstaller-1.3.1-26 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\56029e2f89fafac04afd7a33c344996b\transformed\jetified-profileinstaller-1.3.1\res
+com.ezio.unishare.app-core-1.12.0-27 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\56446583c8916a377770844f2a14a0bd\transformed\core-1.12.0\res
+com.ezio.unishare.app-jetified-emoji2-1.3.0-28 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\567c060f0ed628eee85ca8ba548cd4d8\transformed\jetified-emoji2-1.3.0\res
+com.ezio.unishare.app-jetified-ui-graphics-release-29 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\5756e27e5d95d7b210d3df5074ebbb77\transformed\jetified-ui-graphics-release\res
+com.ezio.unishare.app-jetified-viewpager2-1.0.0-30 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\576d3ebe12db71b8c739db4091dd7a4a\transformed\jetified-viewpager2-1.0.0\res
+com.ezio.unishare.app-navigation-common-ktx-2.7.7-31 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\5a03764b3977a2c43c2d7464a578cd9d\transformed\navigation-common-ktx-2.7.7\res
+com.ezio.unishare.app-jetified-animation-release-32 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\6a5dc08d3c6b4038f58dfdb6b19ec51b\transformed\jetified-animation-release\res
+com.ezio.unishare.app-recyclerview-1.1.0-33 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\6eadaea63804f7c12795db978899efca\transformed\recyclerview-1.1.0\res
+com.ezio.unishare.app-jetified-runtime-saveable-release-34 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\76881aa7dbc471886e7456d16427192c\transformed\jetified-runtime-saveable-release\res
+com.ezio.unishare.app-jetified-foundation-layout-release-35 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\7c534632ce050ffc1d342cc60468151a\transformed\jetified-foundation-layout-release\res
+com.ezio.unishare.app-jetified-ui-text-release-36 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\88e5cf3b0d2ec37f4da1eff92afa6ab3\transformed\jetified-ui-text-release\res
+com.ezio.unishare.app-navigation-runtime-ktx-2.7.7-37 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\960e5483fefdd1ee2eeb33eaa573f698\transformed\navigation-runtime-ktx-2.7.7\res
+com.ezio.unishare.app-material-1.11.0-38 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\992af5e9d91067510230a3c79cbf24ee\transformed\material-1.11.0\res
+com.ezio.unishare.app-jetified-activity-compose-1.8.0-39 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\9bbb2fc7d8ed851560c7eceb80accba5\transformed\jetified-activity-compose-1.8.0\res
+com.ezio.unishare.app-lifecycle-livedata-2.7.0-40 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\9e2c131b2edb5a764a6275aa8cf87944\transformed\lifecycle-livedata-2.7.0\res
+com.ezio.unishare.app-coordinatorlayout-1.1.0-41 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\a3ba7c70cc3ee08135bfa02002476154\transformed\coordinatorlayout-1.1.0\res
+com.ezio.unishare.app-jetified-lifecycle-viewmodel-ktx-2.7.0-42 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\a9bff691683ccb57a9fbaab3906c43c9\transformed\jetified-lifecycle-viewmodel-ktx-2.7.0\res
+com.ezio.unishare.app-jetified-savedstate-ktx-1.2.1-43 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\c84529285e4e2eb3555eb01d9ea017a7\transformed\jetified-savedstate-ktx-1.2.1\res
+com.ezio.unishare.app-lifecycle-runtime-2.7.0-44 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\c861122ff62cecaceceaf5d59da57323\transformed\lifecycle-runtime-2.7.0\res
+com.ezio.unishare.app-lifecycle-viewmodel-2.7.0-45 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\cd51cfb274f06afc5c1185e9f9949d2e\transformed\lifecycle-viewmodel-2.7.0\res
+com.ezio.unishare.app-jetified-material-icons-extended-release-46 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\d24cfc9fa64d938cb4f0b43396bdcade\transformed\jetified-material-icons-extended-release\res
+com.ezio.unishare.app-navigation-runtime-2.7.7-47 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\d299dec00768ddbc55a9cfc5efe2d404\transformed\navigation-runtime-2.7.7\res
+com.ezio.unishare.app-jetified-activity-1.8.0-48 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\d3fbc7664208331a1b00390c06fa2c9f\transformed\jetified-activity-1.8.0\res
+com.ezio.unishare.app-jetified-appcompat-resources-1.6.1-49 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\d7c181ebf156d9482e203ed62b7362bd\transformed\jetified-appcompat-resources-1.6.1\res
+com.ezio.unishare.app-jetified-lifecycle-viewmodel-compose-2.7.0-50 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\d7cb020b488c62972494d48c3e5ddfbd\transformed\jetified-lifecycle-viewmodel-compose-2.7.0\res
+com.ezio.unishare.app-jetified-lifecycle-process-2.7.0-51 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\deac27babb6458905543a75dccb61fa9\transformed\jetified-lifecycle-process-2.7.0\res
+com.ezio.unishare.app-jetified-firebase-common-20.4.2-52 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\e2d16d14c0a71766d625045ac447ab6a\transformed\jetified-firebase-common-20.4.2\res
+com.ezio.unishare.app-jetified-material-icons-core-release-53 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\e300eb90b95cc6988db9cc9b204e3dd9\transformed\jetified-material-icons-core-release\res
+com.ezio.unishare.app-jetified-ui-unit-release-54 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\e32c5b48bd3590369a7f7154ebd7a250\transformed\jetified-ui-unit-release\res
+com.ezio.unishare.app-jetified-emoji2-views-helper-1.3.0-55 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\e76440b9198b10305d091a5e22c74d28\transformed\jetified-emoji2-views-helper-1.3.0\res
+com.ezio.unishare.app-transition-1.2.0-56 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\eefc7b3b1535d8e8f081ef17832413cd\transformed\transition-1.2.0\res
+com.ezio.unishare.app-jetified-navigation-compose-2.7.7-57 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\ef7687ad924ce688ef61f0b1ca6ff518\transformed\jetified-navigation-compose-2.7.7\res
+com.ezio.unishare.app-jetified-material3-release-58 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\f288803b8a4c4042a908ea6d4cb9c9b8\transformed\jetified-material3-release\res
+com.ezio.unishare.app-navigation-common-2.7.7-59 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\fa6400d89731df78a1bcab5e70d51d31\transformed\navigation-common-2.7.7\res
+com.ezio.unishare.app-jetified-annotation-experimental-1.4.0-60 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\fa7ec0ff0122816bc0b9efc1ed72d8cd\transformed\jetified-annotation-experimental-1.4.0\res
+com.ezio.unishare.app-lifecycle-livedata-core-2.7.0-61 C:\Users\sreer\.gradle\caches\9.0-milestone-1\transforms\faa55a31446862bcf88ed9239f44d411\transformed\lifecycle-livedata-core-2.7.0\res
+com.ezio.unishare.app-res-62 C:\Users\sreer\AndroidStudioProjects\dummy1\app\build\generated\res\processDebugGoogleServices
+com.ezio.unishare.app-resValues-63 C:\Users\sreer\AndroidStudioProjects\dummy1\app\build\generated\res\resValues\debug
+com.ezio.unishare.app-updated_navigation_xml-64 C:\Users\sreer\AndroidStudioProjects\dummy1\app\build\generated\updated_navigation_xml\debug
+com.ezio.unishare.app-packageDebugResources-65 C:\Users\sreer\AndroidStudioProjects\dummy1\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.ezio.unishare.app-packageDebugResources-66 C:\Users\sreer\AndroidStudioProjects\dummy1\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.ezio.unishare.app-debug-67 C:\Users\sreer\AndroidStudioProjects\dummy1\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.ezio.unishare.app-debug-68 C:\Users\sreer\AndroidStudioProjects\dummy1\app\src\debug\res
+com.ezio.unishare.app-main-69 C:\Users\sreer\AndroidStudioProjects\dummy1\app\src\main\res
