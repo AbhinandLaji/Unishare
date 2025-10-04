@@ -1,14 +1,12 @@
 plugins {
-    id 'com.android.application' version '8.13.0' apply false
+    // This version has been changed from 8.13.0 to 8.12.1
+    id 'com.android.application' version '8.12.3' apply false
+
+    // The rest of the file remains the same
     id 'org.jetbrains.kotlin.android' version '2.2.10' apply false
-
-    id 'org.jetbrains.kotlin.plugin.compose' version '2.2.10' apply false // Add this line
-
-    id 'com.google.gms.google-services' version '4.4.2' apply false // 👈 add here
-
+    id 'org.jetbrains.kotlin.plugin.compose' version '2.2.10' apply false
+    id 'com.google.gms.google-services' version '4.4.2' apply false
 }
-
-
 
 task clean(type: Delete) {
     delete rootProject.buildDir
