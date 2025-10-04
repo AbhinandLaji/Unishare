@@ -13,13 +13,14 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.textfield.TextInputLayout
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CreateAccountActivity : AppCompatActivity() {
 
-    private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var textViewPasswordCriteriaErrorsCreate: TextView
 
     // Password strength criteria
@@ -32,8 +33,6 @@ class CreateAccountActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_account)
-
-        firebaseAuth = FirebaseAuth.getInstance()
 
         // --- Find Views ---
         val firstNameLayout = findViewById<TextInputLayout>(R.id.textInputLayoutFirstName)
@@ -54,7 +53,7 @@ class CreateAccountActivity : AppCompatActivity() {
         textViewPasswordCriteriaErrorsCreate = findViewById(R.id.textViewPasswordCriteriaErrorsCreate)
         val shake = AnimationUtils.loadAnimation(this, R.anim.shake_anim)
 
-        // --- Add Text Watchers to clear errors (your existing code is good) ---
+        // --- Clear errors on typing ---
         fun addTextWatcherToClearError(editText: EditText, layout: TextInputLayout) {
             editText.addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -77,80 +76,97 @@ class CreateAccountActivity : AppCompatActivity() {
         addTextWatcherToClearError(passwordEditText, passwordLayout)
         addTextWatcherToClearError(confirmPasswordEditText, confirmPasswordLayout)
 
-
+        // --- Button click ---
         createAccountButton.setOnClickListener {
             val scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.button_scale_anim)
             it.startAnimation(scaleAnimation)
 
-            val firstName = firstNameEditText.text.toString().trim()
-            val lastName = lastNameEditText.text.toString().trim()
-            val email = collegeEmailEditText.text.toString().trim()
-            val phone = phoneEditText.text.toString().trim()
-            val password = passwordEditText.text.toString()
-            val confirmPassword = confirmPasswordEditText.text.toString()
+            // --- Read all fields as non-null Strings ---
+            val firstName: String = firstNameEditText.text.toString().trim()
+            val lastName: String = lastNameEditText.text.toString().trim()
+            val email: String = collegeEmailEditText.text.toString().trim()
+            val phone: String = phoneEditText.text.toString().trim()
+            val password: String = passwordEditText.text.toString()
+            val confirmPassword: String = confirmPasswordEditText.text.toString()
 
-            // Assume your existing validation logic runs here and sets a variable 'isValid'
-            var isValid = true 
-            // ... your validation ...
-            if (password != confirmPassword) {
+            var isValid = true
+
+            // --- Validation ---
+            if (firstName.isEmpty()) {
+                firstNameLayout.error = "Enter first name"
                 isValid = false
-                // ... show error
+            }
+            if (lastName.isEmpty()) {
+                lastNameLayout.error = "Enter last name"
+                isValid = false
+            }
+            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                emailLayout.error = "Enter valid email"
+                isValid = false
+            }
+            if (phone.length != 10) {
+                phoneLayout.error = "Enter valid phone number"
+                isValid = false
+            }
+            if (password != confirmPassword) {
+                confirmPasswordLayout.error = "Passwords do not match"
+                isValid = false
+            }
+            if (!isPasswordStrong(password)) {
+                isValid = false
             }
 
-
-            if (isValid) {
-                it.isEnabled = false
-                Toast.makeText(this, "Creating Account...", Toast.LENGTH_SHORT).show()
-
-                // --- NEW AUTHENTICATION AND DATABASE LOGIC ---
-                firebaseAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this) { task ->
-                        if (task.isSuccessful) {
-                            Log.d("AUTH", "Firebase Auth user created successfully.")
-                            // Now save the user's profile information to the Realtime Database
-                            saveUserDetailsToDatabase(firstName, lastName, email, phone)
-
-                            // Send them to the login screen to sign in for the first time
-                            Toast.makeText(this, "Account created! Please log in.", Toast.LENGTH_LONG).show()
-                            val intent = Intent(this, MainActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            }
-                            startActivity(intent)
-                            finish()
-
-                        } else {
-                            // If user creation fails, show an error and re-enable the button
-                            Log.w("AUTH", "createUserWithEmail:failure", task.exception)
-                            Toast.makeText(baseContext, "Account creation failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                            it.isEnabled = true
-                        }
-                    }
-            } else {
+            if (!isValid) {
                 Toast.makeText(this, "Please correct the errors.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // --- Everything valid, send OTP ---
+            it.isEnabled = false
+            Toast.makeText(this, "Sending OTP...", Toast.LENGTH_SHORT).show()
+
+            CoroutineScope(Dispatchers.IO).launch {
+                val emailService = EmailService()
+                val otp: String? = emailService.sendOtp(email)
+                withContext(Dispatchers.Main) {
+                    if (otp != null) {
+                        Toast.makeText(this@CreateAccountActivity, "OTP sent to $email", Toast.LENGTH_SHORT).show()
+
+                        // Launch OTP verification activity safely
+                        val intent = Intent(this@CreateAccountActivity, OtpVerificationActivity::class.java)
+                        intent.putExtra("EXTRA_FIRST_NAME", firstName)
+                        intent.putExtra("EXTRA_LAST_NAME", lastName)
+                        intent.putExtra("EXTRA_EMAIL", email)
+                        intent.putExtra("EXTRA_PHONE", phone)
+                        intent.putExtra("EXTRA_PASSWORD", password)
+                        intent.putExtra("EXTRA_OTP", otp)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Toast.makeText(this@CreateAccountActivity, "Failed to send OTP. Try again.", Toast.LENGTH_LONG).show()
+                        it.isEnabled = true
+                    }
+                }
             }
         }
     }
 
-    private fun saveUserDetailsToDatabase(firstName: String, lastName: String, email: String, phone: String) {
-        val database = FirebaseDatabase.getInstance()
-        val usersRef = database.getReference("users")
-        val key = email.replace(".", "_")
+    private fun isPasswordStrong(password: String): Boolean {
+        val errors = mutableListOf<String>()
 
-        // Create a map of user data. NOTICE: NO PASSWORD IS SAVED.
-        val userData = mapOf(
-            "firstName" to firstName,
-            "lastName" to lastName,
-            "collegeMail" to email, // Matching your database structure
-            "phone" to phone
-        )
+        if (password.length < passwordMinLength) errors.add("Min $passwordMinLength characters")
+        if (!password.matches(hasUpperCasePattern)) errors.add("At least 1 uppercase letter")
+        if (!password.matches(hasLowerCasePattern)) errors.add("At least 1 lowercase letter")
+        if (!password.matches(hasDigitPattern)) errors.add("At least 1 digit")
+        if (!password.matches(hasSpecialCharPattern)) errors.add("At least 1 special character")
 
-        usersRef.child(key).setValue(userData)
-            .addOnSuccessListener {
-                Log.d("DB_SAVE", "User profile saved to Realtime Database.")
-            }
-            .addOnFailureListener { e ->
-                Log.e("DB_SAVE", "Failed to save user profile.", e)
-            }
+        return if (errors.isEmpty()) {
+            true
+        } else {
+            textViewPasswordCriteriaErrorsCreate.text = errors.joinToString("\n")
+            textViewPasswordCriteriaErrorsCreate.visibility = View.VISIBLE
+            false
+        }
     }
 
     override fun finish() {
@@ -158,4 +174,3 @@ class CreateAccountActivity : AppCompatActivity() {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 }
-
