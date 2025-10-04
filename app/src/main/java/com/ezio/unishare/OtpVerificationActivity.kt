@@ -10,6 +10,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,7 +19,6 @@ import java.util.Locale
 
 class OtpVerificationActivity : AppCompatActivity() {
 
-    // These variables are declared to hold your UI components
     private lateinit var editTextOtp: EditText
     private lateinit var buttonVerifyOtp: Button
     private lateinit var textViewResendOtp: TextView
@@ -30,38 +30,42 @@ class OtpVerificationActivity : AppCompatActivity() {
     private var isTimerRunning = false
     private var correctOtp: String? = null
 
+    // User details passed from CreateAccountActivity
+    private var firstName: String = ""
+    private var lastName: String = ""
+    private var email: String = ""
+    private var phone: String = ""
+    private var password: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Set the content view to your existing XML layout file
         setContentView(R.layout.activity_otp_verification)
 
-        // --- 1. Find views using the IDs FROM YOUR XML LAYOUT ---
-        // I have updated these IDs to match your code
+        // --- Find views ---
         editTextOtp = findViewById(R.id.editTextOtp)
         buttonVerifyOtp = findViewById(R.id.buttonVerifyOtp)
         textViewResendOtp = findViewById(R.id.textViewResendOtp)
         textViewOtpTimer = findViewById(R.id.textViewOtpTimer)
-        textViewInstruction = findViewById(R.id.textViewForgetInstruction) // Using your ID
+        textViewInstruction = findViewById(R.id.textViewForgetInstruction)
 
-        // --- 2. Receive all data passed from CreateAccountActivity ---
-        correctOtp = intent.getStringExtra("EXTRA_OTP")
-        val firstName = intent.getStringExtra("EXTRA_FIRST_NAME")
-        val lastName = intent.getStringExtra("EXTRA_LAST_NAME")
-        val email = intent.getStringExtra("EXTRA_EMAIL")
-        val phone = intent.getStringExtra("EXTRA_PHONE")
-        val password = intent.getStringExtra("EXTRA_PASSWORD")
+        // --- Get data from intent ---
+        firstName = intent.getStringExtra("EXTRA_FIRST_NAME") ?: ""
+        lastName = intent.getStringExtra("EXTRA_LAST_NAME") ?: ""
+        email = intent.getStringExtra("EXTRA_EMAIL") ?: ""
+        phone = intent.getStringExtra("EXTRA_PHONE") ?: ""
+        password = intent.getStringExtra("EXTRA_PASSWORD") ?: ""
+        correctOtp = intent.getStringExtra("EXTRA_OTP") ?: ""
 
         Log.d("OtpVerification", "Correct OTP received: $correctOtp")
 
-        // Update the instruction text with the user's email
-        if (!email.isNullOrEmpty()) {
+        if (email.isNotEmpty()) {
             textViewInstruction.text = "Enter the OTP sent to $email to verify your account."
         }
 
         val shakeAnimation = AnimationUtils.loadAnimation(this, R.anim.shake_anim)
         startOtpTimer(otpTimerDuration)
 
-        // --- 3. Verify Button Logic ---
+        // --- Verify OTP ---
         buttonVerifyOtp.setOnClickListener {
             val enteredOtp = editTextOtp.text.toString().trim()
 
@@ -71,21 +75,9 @@ class OtpVerificationActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // --- REAL OTP VERIFICATION LOGIC ---
             if (enteredOtp == correctOtp) {
-                Toast.makeText(this, "Account Verified Successfully!", Toast.LENGTH_LONG).show()
                 countDownTimer?.cancel()
-
-
-                Log.d("OtpVerification", "SUCCESS! User to be created: $firstName, $email")
-                // Here, you would call your Firebase or SQLite database manager to create the new user.
-
-                // After saving, navigate to the main part of your app or login screen
-                val intent = Intent(this, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                startActivity(intent)
-                finish()
+                saveUserToDatabase(firstName, lastName, email, phone, password)
             } else {
                 editTextOtp.error = "Invalid OTP"
                 editTextOtp.startAnimation(shakeAnimation)
@@ -93,9 +85,9 @@ class OtpVerificationActivity : AppCompatActivity() {
             }
         }
 
-        // --- 4. Resend OTP Logic ---
+        // --- Resend OTP ---
         textViewResendOtp.setOnClickListener {
-            if (!isTimerRunning && !email.isNullOrEmpty()) {
+            if (!isTimerRunning && email.isNotEmpty()) {
                 Toast.makeText(this, "Resending OTP...", Toast.LENGTH_SHORT).show()
                 resendOtpInBackground(email)
             } else {
@@ -110,12 +102,12 @@ class OtpVerificationActivity : AppCompatActivity() {
             val newOtp = emailService.sendOtp(email)
             withContext(Dispatchers.Main) {
                 if (newOtp != null) {
-                    correctOtp = newOtp // Update the correct OTP
-                    Log.d("OtpVerification", "New OTP sent and updated: $correctOtp")
+                    correctOtp = newOtp
+                    Log.d("OtpVerification", "New OTP sent: $correctOtp")
                     Toast.makeText(applicationContext, "A new OTP has been sent.", Toast.LENGTH_SHORT).show()
                     editTextOtp.text.clear()
                     editTextOtp.error = null
-                    startOtpTimer(otpTimerDuration) // Restart timer
+                    startOtpTimer(otpTimerDuration)
                 } else {
                     Toast.makeText(applicationContext, "Failed to resend OTP.", Toast.LENGTH_SHORT).show()
                 }
@@ -145,6 +137,36 @@ class OtpVerificationActivity : AppCompatActivity() {
         }.start()
     }
 
+    private fun saveUserToDatabase(firstName: String, lastName: String, email: String, phone: String, password: String) {
+        val database = FirebaseDatabase.getInstance()
+        val usersRef = database.getReference("users")
+        val key = email.replace(".", "_")
+
+        val userData = mapOf(
+            "firstName" to firstName,
+            "lastName" to lastName,
+            "collegeMail" to email,
+            "phone" to phone,
+            "password" to password // ⚠️ plain password for learning only
+        )
+
+        usersRef.child(key).setValue(userData)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Account created successfully!", Toast.LENGTH_LONG).show()
+                Log.d("DB_SAVE", "User saved to Firebase")
+
+                // After saving, navigate to MainActivity
+                val intent = Intent(this, MainActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Failed to save account: ${e.message}", Toast.LENGTH_LONG).show()
+                Log.e("DB_SAVE", "Error saving user", e)
+            }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         countDownTimer?.cancel()
@@ -155,4 +177,5 @@ class OtpVerificationActivity : AppCompatActivity() {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 }
+
 
