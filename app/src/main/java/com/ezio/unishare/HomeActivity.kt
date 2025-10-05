@@ -155,6 +155,13 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, 
             val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
             ItemDetailScreen(navController = navController, itemId = itemId)
         }
+        composable(
+            route = "category/{categoryName}",
+            arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
+            CategoryListScreen(navController = navController, categoryName = categoryName)
+        }
         composable("add_product") {
             AddProductScreen(navController = navController, userEmail = userEmail)
         }
@@ -233,7 +240,7 @@ fun HomeScreenContent(navController: NavHostController) {
     ) {
         item { SearchBarSection() }
         item { BannerCarousel() }
-        item { CategoryRow() }
+        item { CategoryRow(navController = navController) }
         item {
             Text(
                 "Popular Rentals",
@@ -325,7 +332,7 @@ fun BannerCarousel() {
 }
 
 @Composable
-fun CategoryRow() {
+fun CategoryRow(navController: NavHostController) {
     val categories = listOf("Books", "Electronics", "Furniture", "Sports", "Notes", "Other")
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -333,7 +340,9 @@ fun CategoryRow() {
     ) {
         items(categories) { category ->
             AssistChip(
-                onClick = { },
+                onClick = {
+                    navController.navigate("category/$category")
+                },
                 label = { Text(category) }
             )
         }
@@ -980,6 +989,207 @@ fun AddProductScreen(navController: NavHostController, userEmail: String) {
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text("Cancel", fontSize = 16.sp)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CategoryListScreen(navController: NavHostController, categoryName: String) {
+    val allItems = remember { getSampleRentalItems() }
+    val filteredItems = remember(categoryName) {
+        allItems.filter { it.category == categoryName }
+    }
+
+    var isVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        isVisible = true
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(categoryName) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        if (filteredItems.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Default.ShoppingCart,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "No items in $categoryName",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Check back later for new listings",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    AnimatedVisibility(
+                        visible = isVisible,
+                        enter = fadeIn(animationSpec = tween(300)) +
+                                slideInVertically(
+                                    initialOffsetY = { -it / 4 },
+                                    animationSpec = tween(300)
+                                )
+                    ) {
+                        Text(
+                            "${filteredItems.size} items available",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.Gray
+                        )
+                    }
+                }
+
+                itemsIndexed(filteredItems) { index, item ->
+                    AnimatedVisibility(
+                        visible = isVisible,
+                        enter = fadeIn(animationSpec = tween(300, delayMillis = index * 50)) +
+                                slideInVertically(
+                                    initialOffsetY = { it / 2 },
+                                    animationSpec = tween(300, delayMillis = index * 50)
+                                )
+                    ) {
+                        CategoryItemCard(
+                            item = item,
+                            onClick = { navController.navigate("item_detail/${item.id}") }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CategoryItemCard(item: RentalItem, onClick: () -> Unit) {
+    var isPressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "cardScale"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(scale)
+            .clickable {
+                isPressed = true
+                onClick()
+            },
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Product Image
+            AsyncImage(
+                model = item.imageUrl,
+                contentDescription = item.name,
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            // Product Details
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = item.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Filled.Star,
+                            contentDescription = "Rating",
+                            tint = Color(0xFFFFB300),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = " ${item.rating}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = item.price,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    if (item.available) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    "Available",
+                                    fontSize = 12.sp
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f),
+                                labelColor = Color(0xFF4CAF50)
+                            )
+                        )
+                    }
                 }
             }
         }
