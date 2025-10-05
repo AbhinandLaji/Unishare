@@ -15,6 +15,8 @@ color error_red
 color ic_launcher_background
 color white
 drawable banner_1
+drawable banner_2
+drawable banner_3
 drawable button_interactive_background
 drawable edit_text_background
 drawable edit_text_interactive_background

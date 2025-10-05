@@ -69,6 +69,7 @@ class SetNewPasswordActivity : AppCompatActivity() {
 
             if (newPassword != confirmPassword) {
                 textInputLayoutConfirmPassword.error = "Passwords do not match"
+
                 textInputLayoutConfirmPassword.startAnimation(shakeAnimation)
                 isValid = false
             } else {
