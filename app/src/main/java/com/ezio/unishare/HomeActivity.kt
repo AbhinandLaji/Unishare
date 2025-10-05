@@ -201,7 +201,7 @@ fun SearchBarSection() {
 
 @Composable
 fun BannerCarousel() {
-    val banners = listOf("https://picsum.photos/600/200?1","https://picsum.photos/600/200?2","https://picsum.photos/600/200?3")
+    val banners = listOf( R.drawable.banner_1, R.drawable.banner_2, R.drawable.banner_3)
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(horizontal = 16.dp)) {
         items(banners) { bannerUrl ->
             Card(modifier = Modifier.width(300.dp).height(150.dp), colors = CardDefaults.cardColors(containerColor = Color.LightGray)) {
