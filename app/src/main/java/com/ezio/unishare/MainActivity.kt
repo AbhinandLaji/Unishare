@@ -13,18 +13,27 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputLayout
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var firebaseAuth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ Check if already logged in (session exists)
-        val sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE)
-        val isLoggedIn = sharedPref.getBoolean("isLoggedIn", false)
-        if (isLoggedIn) {
-            val intent = Intent(this, HomeActivity::class.java)
+        // Initialize Firebase Auth
+        firebaseAuth = FirebaseAuth.getInstance()
+
+        // Check if already logged in (Firebase Auth session exists)
+        val currentUser = firebaseAuth.currentUser
+        if (currentUser != null) {
+            Log.d("Login", "User already logged in: ${currentUser.email}")
+            // User is already signed in, go to Home
+            val intent = Intent(this, HomeActivity::class.java).apply {
+                putExtra("USER_EMAIL", currentUser.email ?: "")
+            }
             startActivity(intent)
             finish()
             return
@@ -60,8 +69,6 @@ class MainActivity : AppCompatActivity() {
 
         // --- LOGIN BUTTON ---
         joinButton.setOnClickListener {
-            val scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.button_scale_anim)
-            it.startAnimation(scaleAnimation)
             val email = collegeMailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
             var isValid = true
@@ -85,19 +92,22 @@ class MainActivity : AppCompatActivity() {
 
             if (!isValid) return@setOnClickListener
 
-            // --- Check password from Realtime Database ---
-            val database = FirebaseDatabase.getInstance()
-            val usersRef = database.getReference("users")
-            val emailKey = email.replace(".", "_") // same format as you save
+            // Disable button during login process
+            joinButton.isEnabled = false
 
-            usersRef.child(emailKey).get().addOnSuccessListener { snapshot ->
-                if (snapshot.exists()) {
-                    val storedPassword = snapshot.child("password").getValue(String::class.java)
-                    if (storedPassword == password) {
+            // --- Sign in with Firebase Authentication ---
+            firebaseAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this) { task ->
+                    joinButton.isEnabled = true
+
+                    if (task.isSuccessful) {
+                        // Sign in success
+                        val user = firebaseAuth.currentUser
+                        Log.d("Login", "signInWithEmail:success - ${user?.email}")
                         Toast.makeText(this, "Login successful ✅", Toast.LENGTH_SHORT).show()
-                        Log.d("Login", "User $email logged in successfully")
 
-                        // ✅ Save session in SharedPreferences
+                        // Save session in SharedPreferences (optional, for backup)
+                        val sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE)
                         sharedPref.edit().apply {
                             putBoolean("isLoggedIn", true)
                             putString("userEmail", email)
@@ -112,25 +122,32 @@ class MainActivity : AppCompatActivity() {
                         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                         finish()
                     } else {
-                        passwordLayout.error = "Invalid password!"
-                        passwordLayout.startAnimation(shakeAnimation)
-                        Toast.makeText(this, "Invalid password!", Toast.LENGTH_LONG).show()
+                        // Sign in failed
+                        Log.e("Login", "signInWithEmail:failure", task.exception)
+
+                        val errorMessage = when {
+                            task.exception?.message?.contains("no user record", ignoreCase = true) == true -> {
+                                collegeMailLayout.error = "Account not found"
+                                collegeMailLayout.startAnimation(shakeAnimation)
+                                "No account found with this email"
+                            }
+                            task.exception?.message?.contains("password is invalid", ignoreCase = true) == true -> {
+                                passwordLayout.error = "Incorrect password"
+                                passwordLayout.startAnimation(shakeAnimation)
+                                "Incorrect password"
+                            }
+                            else -> {
+                                "Login failed: ${task.exception?.message}"
+                            }
+                        }
+
+                        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
                     }
-                } else {
-                    collegeMailLayout.error = "Invalid email!"
-                    collegeMailLayout.startAnimation(shakeAnimation)
-                    Toast.makeText(this, "Invalid email!", Toast.LENGTH_LONG).show()
                 }
-            }.addOnFailureListener { e ->
-                Toast.makeText(this, "Database error: ${e.message}", Toast.LENGTH_LONG).show()
-                Log.e("Login", "Error reading DB", e)
-            }
         }
 
         // --- Navigation to other activities ---
         createAccountButton.setOnClickListener {
-            val scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.button_scale_anim)
-            it.startAnimation(scaleAnimation)
             startActivity(Intent(this, CreateAccountActivity::class.java))
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }

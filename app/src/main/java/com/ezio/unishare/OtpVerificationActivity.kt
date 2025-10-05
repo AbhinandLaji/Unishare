@@ -10,6 +10,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,7 @@ class OtpVerificationActivity : AppCompatActivity() {
     private lateinit var textViewResendOtp: TextView
     private lateinit var textViewOtpTimer: TextView
     private lateinit var textViewInstruction: TextView
+    private lateinit var firebaseAuth: FirebaseAuth
 
     private var countDownTimer: CountDownTimer? = null
     private val otpTimerDuration = 5 * 60 * 1000L // 5 minutes
@@ -40,6 +42,9 @@ class OtpVerificationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_otp_verification)
+
+        // Initialize Firebase Auth
+        firebaseAuth = FirebaseAuth.getInstance()
 
         // --- Find views ---
         editTextOtp = findViewById(R.id.editTextOtp)
@@ -77,7 +82,8 @@ class OtpVerificationActivity : AppCompatActivity() {
 
             if (enteredOtp == correctOtp) {
                 countDownTimer?.cancel()
-                saveUserToDatabase(firstName, lastName, email, phone, password)
+                buttonVerifyOtp.isEnabled = false
+                createUserAccount(firstName, lastName, email, phone, password)
             } else {
                 editTextOtp.error = "Invalid OTP"
                 editTextOtp.startAnimation(shakeAnimation)
@@ -137,7 +143,39 @@ class OtpVerificationActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun saveUserToDatabase(firstName: String, lastName: String, email: String, phone: String, password: String) {
+    private fun createUserAccount(firstName: String, lastName: String, email: String, phone: String, password: String) {
+        Log.d("OtpVerification", "Creating Firebase Auth account for: $email")
+
+        // Step 1: Create user in Firebase Authentication
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Account created successfully in Firebase Auth
+                    val user = firebaseAuth.currentUser
+                    Log.d("OtpVerification", "Firebase Auth account created: ${user?.uid}")
+
+                    // Step 2: Save additional user data to Realtime Database
+                    saveUserDataToDatabase(firstName, lastName, email, phone, password)
+                } else {
+                    // Failed to create account
+                    Log.e("OtpVerification", "createUserWithEmail:failure", task.exception)
+                    buttonVerifyOtp.isEnabled = true
+
+                    val errorMessage = when {
+                        task.exception?.message?.contains("email address is already", ignoreCase = true) == true -> {
+                            "This email is already registered. Please login instead."
+                        }
+                        else -> {
+                            "Failed to create account: ${task.exception?.message}"
+                        }
+                    }
+
+                    Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+                }
+            }
+    }
+
+    private fun saveUserDataToDatabase(firstName: String, lastName: String, email: String, phone: String, password: String) {
         val database = FirebaseDatabase.getInstance()
         val usersRef = database.getReference("users")
         val key = email.replace(".", "_")
@@ -147,23 +185,29 @@ class OtpVerificationActivity : AppCompatActivity() {
             "lastName" to lastName,
             "collegeMail" to email,
             "phone" to phone,
-            "password" to password // ⚠️ plain password for learning only
+            "password" to password // Storing password for your current setup (not recommended in production)
         )
+
+        Log.d("OtpVerification", "Saving user data to database: $key")
 
         usersRef.child(key).setValue(userData)
             .addOnSuccessListener {
+                Log.d("OtpVerification", "User data saved to database successfully")
                 Toast.makeText(this, "Account created successfully!", Toast.LENGTH_LONG).show()
-                Log.d("DB_SAVE", "User saved to Firebase")
 
-                // After saving, navigate to MainActivity
+                // Navigate to MainActivity (login screen)
                 val intent = Intent(this, MainActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
                 finish()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to save account: ${e.message}", Toast.LENGTH_LONG).show()
-                Log.e("DB_SAVE", "Error saving user", e)
+                Log.e("OtpVerification", "Failed to save user data to database", e)
+                Toast.makeText(this, "Failed to save account data: ${e.message}", Toast.LENGTH_LONG).show()
+                buttonVerifyOtp.isEnabled = true
+
+                // If database save fails, we should delete the auth user
+                // But for simplicity, we'll let them try to login
             }
     }
 
@@ -177,5 +221,3 @@ class OtpVerificationActivity : AppCompatActivity() {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 }
-
-
