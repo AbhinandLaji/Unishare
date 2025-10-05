@@ -1,67 +1,39 @@
 [
     {
-        "merged": "com.ezio.unishare.app-debug-67:/drawable_welcome.png.flat",
-        "source": "com.ezio.unishare.app-main-69:/drawable/welcome.png"
-    },
-    {
-        "merged": "com.ezio.unishare.app-debug-67:/mipmap-anydpi-v26_ic_launcher.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/mipmap-anydpi-v26/ic_launcher.xml"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-hdpi\\ic_launcher.webp"
     },
     {
         "merged": "com.ezio.unishare.app-debug-67:/mipmap-xxhdpi_ic_launcher_foreground.webp.flat",
         "source": "com.ezio.unishare.app-main-69:/mipmap-xxhdpi/ic_launcher_foreground.webp"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/layout_activity_set_new_password.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/layout/activity_set_new_password.xml"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\anim_shake_anim.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\anim\\shake_anim.xml"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/mipmap-xhdpi_ic_launcher_foreground.webp.flat",
-        "source": "com.ezio.unishare.app-main-69:/mipmap-xhdpi/ic_launcher_foreground.webp"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-hdpi\\ic_launcher_round.webp"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/mipmap-hdpi_ic_launcher_round.webp.flat",
-        "source": "com.ezio.unishare.app-main-69:/mipmap-hdpi/ic_launcher_round.webp"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\color_custom_text_input_stroke_color.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\color\\custom_text_input_stroke_color.xml"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/mipmap-anydpi-v26/ic_launcher_round.xml"
-    },
-    {
-        "merged": "com.ezio.unishare.app-debug-67:/drawable_edit_text_background.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/drawable/edit_text_background.xml"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\layout\\activity_main.xml"
     },
     {
         "merged": "com.ezio.unishare.app-debug-67:/mipmap-hdpi_ic_launcher.webp.flat",
         "source": "com.ezio.unishare.app-main-69:/mipmap-hdpi/ic_launcher.webp"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/anim_shake_anim.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/anim/shake_anim.xml"
-    },
-    {
-        "merged": "com.ezio.unishare.app-debug-67:/color_custom_text_input_stroke_color.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/color/custom_text_input_stroke_color.xml"
-    },
-    {
         "merged": "com.ezio.unishare.app-debug-67:/mipmap-xxhdpi_ic_launcher_round.webp.flat",
         "source": "com.ezio.unishare.app-main-69:/mipmap-xxhdpi/ic_launcher_round.webp"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/anim_button_scale_anim.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/anim/button_scale_anim.xml"
-    },
-    {
-        "merged": "com.ezio.unishare.app-debug-67:/drawable_loading_screen.png.flat",
-        "source": "com.ezio.unishare.app-main-69:/drawable/loading_screen.png"
-    },
-    {
-        "merged": "com.ezio.unishare.app-debug-67:/layout_activity_forget.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/layout/activity_forget.xml"
-    },
-    {
-        "merged": "com.ezio.unishare.app-debug-67:/mipmap-xxhdpi_ic_launcher.webp.flat",
-        "source": "com.ezio.unishare.app-main-69:/mipmap-xxhdpi/ic_launcher.webp"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\layout_activity_set_new_password.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\layout\\activity_set_new_password.xml"
     },
     {
         "merged": "com.ezio.unishare.app-debug-67:/mipmap-xxxhdpi_ic_launcher_foreground.webp.flat",
@@ -72,79 +44,167 @@
         "source": "com.ezio.unishare.app-main-69:/mipmap-hdpi/ic_launcher_foreground.webp"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/anim_slide_out_right.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/anim/slide_out_right.xml"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\layout_activity_forget.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\layout\\activity_forget.xml"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/anim_slide_in_right.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/anim/slide_in_right.xml"
-    },
-    {
-        "merged": "com.ezio.unishare.app-debug-67:/layout_activity_main.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/layout/activity_main.xml"
-    },
-    {
-        "merged": "com.ezio.unishare.app-debug-67:/drawable_ic_banner_image.png.flat",
-        "source": "com.ezio.unishare.app-main-69:/drawable/ic_banner_image.png"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-xxxhdpi\\ic_launcher_round.webp"
     },
     {
         "merged": "com.ezio.unishare.app-debug-67:/mipmap-mdpi_ic_launcher_foreground.webp.flat",
         "source": "com.ezio.unishare.app-main-69:/mipmap-mdpi/ic_launcher_foreground.webp"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/drawable_button_interactive_background.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/drawable/button_interactive_background.xml"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-xxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\anim_slide_out_left.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\anim\\slide_out_left.xml"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-hdpi_ic_launcher_foreground.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-hdpi\\ic_launcher_foreground.webp"
     },
     {
         "merged": "com.ezio.unishare.app-debug-67:/mipmap-xxxhdpi_ic_launcher.webp.flat",
         "source": "com.ezio.unishare.app-main-69:/mipmap-xxxhdpi/ic_launcher.webp"
     },
     {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\drawable_welcome.png.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\drawable\\welcome.png"
+    },
+    {
         "merged": "com.ezio.unishare.app-debug-67:/mipmap-xxxhdpi_ic_launcher_round.webp.flat",
         "source": "com.ezio.unishare.app-main-69:/mipmap-xxxhdpi/ic_launcher_round.webp"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/anim_slide_out_left.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/anim/slide_out_left.xml"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-xhdpi\\ic_launcher_round.webp"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/layout_activity_splash.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/layout/activity_splash.xml"
-    },
-    {
-        "merged": "com.ezio.unishare.app-debug-67:/drawable_edit_text_interactive_background.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/drawable/edit_text_interactive_background.xml"
-    },
-    {
-        "merged": "com.ezio.unishare.app-debug-67:/anim_slide_in_left.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/anim/slide_in_left.xml"
-    },
-    {
-        "merged": "com.ezio.unishare.app-debug-67:/drawable_ic_mic.png.flat",
-        "source": "com.ezio.unishare.app-main-69:/drawable/ic_mic.png"
-    },
-    {
-        "merged": "com.ezio.unishare.app-debug-67:/layout_activity_create_account.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/layout/activity_create_account.xml"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-xxhdpi\\ic_launcher_round.webp"
     },
     {
         "merged": "com.ezio.unishare.app-debug-67:/mipmap-xhdpi_ic_launcher_round.webp.flat",
         "source": "com.ezio.unishare.app-main-69:/mipmap-xhdpi/ic_launcher_round.webp"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/mipmap-mdpi_ic_launcher_round.webp.flat",
-        "source": "com.ezio.unishare.app-main-69:/mipmap-mdpi/ic_launcher_round.webp"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-xxhdpi_ic_launcher_foreground.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-xxhdpi\\ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-mdpi\\ic_launcher.webp"
     },
     {
         "merged": "com.ezio.unishare.app-debug-67:/mipmap-mdpi_ic_launcher.webp.flat",
         "source": "com.ezio.unishare.app-main-69:/mipmap-mdpi/ic_launcher.webp"
     },
     {
-        "merged": "com.ezio.unishare.app-debug-67:/layout_activity_otp_verification.xml.flat",
-        "source": "com.ezio.unishare.app-main-69:/layout/activity_otp_verification.xml"
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-mdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-xhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-xxxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\drawable_ic_banner_image.png.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\drawable\\ic_banner_image.png"
+    },
+    {
+        "merged": "com.ezio.unishare.app-debug-67:/mipmap-xhdpi_ic_launcher_foreground.webp.flat",
+        "source": "com.ezio.unishare.app-main-69:/mipmap-xhdpi/ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "com.ezio.unishare.app-debug-67:/mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "com.ezio.unishare.app-main-69:/mipmap-hdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\anim_slide_in_right.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\anim\\slide_in_right.xml"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\anim_button_scale_anim.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\anim\\button_scale_anim.xml"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-xhdpi_ic_launcher_foreground.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-xhdpi\\ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "com.ezio.unishare.app-debug-67:/mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "com.ezio.unishare.app-main-69:/mipmap-xxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-mdpi_ic_launcher_foreground.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-mdpi\\ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\drawable_ic_mic.png.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\drawable\\ic_mic.png"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\anim_slide_in_left.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\anim\\slide_in_left.xml"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\drawable_button_interactive_background.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\drawable\\button_interactive_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\layout_activity_create_account.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\layout\\activity_create_account.xml"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\layout_activity_splash.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\layout\\activity_splash.xml"
+    },
+    {
+        "merged": "com.ezio.unishare.app-debug-67:/mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "com.ezio.unishare.app-main-69:/mipmap-mdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\drawable_edit_text_interactive_background.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\drawable\\edit_text_interactive_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\anim_slide_out_right.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\anim\\slide_out_right.xml"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-xxxhdpi_ic_launcher_foreground.webp.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-xxxhdpi\\ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\drawable_edit_text_background.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\drawable\\edit_text_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\drawable_loading_screen.png.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\drawable\\loading_screen.png"
     },
     {
         "merged": "com.ezio.unishare.app-debug-67:/mipmap-xhdpi_ic_launcher.webp.flat",
         "source": "com.ezio.unishare.app-main-69:/mipmap-xhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-debug-67:\\layout_activity_otp_verification.xml.flat",
+        "source": "C:\\Users\\sreer\\.gradle\\daemon\\9.0-milestone-1\\com.ezio.unishare.app-main-69:\\layout\\activity_otp_verification.xml"
     }
 ]

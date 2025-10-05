@@ -1,190 +1,162 @@
 package com.ezio.unishare
 
+import android.content.Context
 import android.content.Intent
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
-// Data class to hold user information from Firebase
-data class UserProfile(
-    val firstName: String = "",
-    val lastName: String = "",
-    val collegeMail: String = "",
-    val phone: String = ""
-)
-
-// A state holder for our data fetching
-sealed class ProfileUiState {
-    object Loading : ProfileUiState()
-    data class Success(val user: UserProfile) : ProfileUiState()
-    data class Error(val message: String) : ProfileUiState()
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(modifier: Modifier = Modifier, userEmail: String) {
-    var profileUiState by remember { mutableStateOf<ProfileUiState>(ProfileUiState.Loading) }
+fun ProfileScreen(navController: NavController, userEmail: String) {
+    val context = LocalContext.current
+    // We keep firebaseAuth here in case you want to use it for other things, but it's not used for logout.
+    val firebaseAuth = FirebaseAuth.getInstance()
+    
+    // State variables to hold user details
+    var firstName by remember { mutableStateOf("Loading...") }
+    var lastName by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("Loading...") }
 
-    // This effect runs once to fetch the user's data from Firebase
+    // This data fetching logic remains the same and is correct.
     LaunchedEffect(key1 = userEmail) {
-        if (userEmail.isBlank()) {
-            profileUiState = ProfileUiState.Error("User email not provided.")
-            return@LaunchedEffect
-        }
-        
-        val database = FirebaseDatabase.getInstance()
-        val userKey = userEmail.replace(".", "_")
-        val userRef = database.getReference("users").child(userKey)
+        if (userEmail.isNotBlank()) {
+            val database = FirebaseDatabase.getInstance()
+            val usersRef = database.getReference("users")
+            val userKey = userEmail.replace(".", "_")
 
-        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val user = snapshot.getValue(UserProfile::class.java)
-                profileUiState = if (user != null) {
-                    ProfileUiState.Success(user)
-                } else {
-                    ProfileUiState.Error("User data not found for email: $userEmail")
+            usersRef.child(userKey).addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    firstName = snapshot.child("firstName").getValue(String::class.java) ?: "User"
+                    lastName = snapshot.child("lastName").getValue(String::class.java) ?: ""
+                    phone = snapshot.child("phone").getValue(String::class.java) ?: "N/A"
                 }
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                profileUiState = ProfileUiState.Error(error.message)
-            }
-        })
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("ProfileScreen", "Failed to load user data.", error.toException())
+                    Toast.makeText(context, "Failed to load user data.", Toast.LENGTH_SHORT).show()
+                }
+            })
+        }
     }
+
+    val fullName = if (firstName != "Loading..." && lastName.isNotEmpty()) "$firstName $lastName" else firstName
+    val initials = if (firstName.isNotEmpty() && firstName != "Loading...") {
+        if (lastName.isNotEmpty()) "${firstName.first()}${lastName.first()}" else firstName.first().toString()
+    } else "UN"
+
+    // UI code remains the same...
+    val darkBackground = Color(0xFF1C1C2D)
+    val cardBackground = Color(0xFF2D2D44)
+    val blueAccent = Color(0xFF4285F4)
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("My Profile") })
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentAlignment = Alignment.Center
-        ) {
-            when (val state = profileUiState) {
-                is ProfileUiState.Loading -> {
-                    CircularProgressIndicator()
-                }
-                is ProfileUiState.Error -> {
-                    Text(text = "Error: ${state.message}", color = MaterialTheme.colorScheme.error)
-                }
-                is ProfileUiState.Success -> {
-                    ProfileContent(user = state.user)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ProfileContent(user: UserProfile) {
-    val context = LocalContext.current
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Avatar with initials
-        Box(
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            val initials = (user.firstName.firstOrNull()?.toString() ?: "") + (user.lastName.firstOrNull()?.toString() ?: "")
-            Text(
-                text = initials.uppercase(),
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+            TopAppBar(
+                title = { Text("My Profile", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = darkBackground)
             )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Full Name
-        Text(
-            text = "${user.firstName} ${user.lastName}",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // User Details Card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(2.dp)
+        },
+        containerColor = darkBackground
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                ProfileInfoRow(icon = Icons.Default.Person, label = "Full Name", value = "${user.firstName} ${user.lastName}")
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-                ProfileInfoRow(icon = Icons.Default.Email, label = "College Email", value = user.collegeMail)
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-                ProfileInfoRow(icon = Icons.Default.Phone, label = "Phone Number", value = user.phone)
+            // ... (Avatar, Name, Details Card UI code is unchanged)
+            Spacer(modifier = Modifier.height(24.dp))
+            Box(modifier = Modifier.size(100.dp).clip(CircleShape).background(blueAccent), contentAlignment = Alignment.Center) {
+                Text(text = initials, color = Color.White, fontSize = 40.sp, fontWeight = FontWeight.Bold)
             }
-        }
-        Spacer(modifier = Modifier.weight(1f)) // Pushes the button to the bottom
-
-        // --- UPDATED LOGOUT BUTTON ---
-        Button(
-            onClick = {
-                // 1. Sign out from Firebase Authentication to end the session
-                FirebaseAuth.getInstance().signOut()
-                
-                // 2. Navigate back to the login screen and clear all previous screens
-                val intent = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = fullName, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(32.dp))
+            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = cardBackground), elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    ProfileDetailRow(Icons.Default.Person, "Full Name", fullName)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ProfileDetailRow(Icons.Default.Email, "College Email", userEmail)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ProfileDetailRow(Icons.Default.Call, "Phone Number", phone)
                 }
-                context.startActivity(intent)
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout")
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Log Out")
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = {
+                    // --- THIS IS THE FIX ---
+
+                    // 1. Get the SharedPreferences your app uses for session management.
+                    val sharedPref = context.getSharedPreferences("UserSession", Context.MODE_PRIVATE)
+
+                    // 2. Clear all saved session data (isLoggedIn = false).
+                    sharedPref.edit().clear().apply()
+
+                    // 3. Show a success message.
+                    Toast.makeText(context, "Logged out successfully!", Toast.LENGTH_SHORT).show()
+                    
+                    // 4. Navigate to the Login Screen (MainActivity) and clear the activity stack.
+                    val intent = Intent(context, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    context.startActivity(intent)
+                    (context as? android.app.Activity)?.finish()
+                },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = blueAccent),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+            ) {
+                Icon(Icons.Default.ExitToApp, contentDescription = "Logout", tint = Color.White)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Log Out", color = Color.White, fontSize = 18.sp)
+            }
         }
     }
 }
 
 @Composable
-fun ProfileInfoRow(icon: ImageVector, label: String, value: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
-        )
+fun ProfileDetailRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Icon(imageVector = icon, contentDescription = label, tint = Color.LightGray, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Column {
-            Text(text = label, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-            Text(text = value, style = MaterialTheme.typography.bodyLarge)
+            Text(text = label, color = Color.Gray, fontSize = 12.sp)
+            Text(text = value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
-
