@@ -60,6 +60,8 @@ class MainActivity : AppCompatActivity() {
 
         // --- LOGIN BUTTON ---
         joinButton.setOnClickListener {
+            val scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.button_scale_anim)
+            it.startAnimation(scaleAnimation)
             val email = collegeMailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
             var isValid = true
@@ -127,6 +129,8 @@ class MainActivity : AppCompatActivity() {
 
         // --- Navigation to other activities ---
         createAccountButton.setOnClickListener {
+            val scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.button_scale_anim)
+            it.startAnimation(scaleAnimation)
             startActivity(Intent(this, CreateAccountActivity::class.java))
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
