@@ -1,0 +1,51 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PeerRentApp.ForceLight">
+
+        <activity android:name=".SetNewPasswordActivity" />
+
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PeerRentApp.ForceLight">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PeerRentApp.ForceLight" />
+
+        <activity
+            android:name=".CreateAccountActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PeerRentApp.ForceLight" />
+
+        <activity
+            android:name=".ForgetActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PeerRentApp.ForceLight" />
+
+        <activity
+            android:name=".OtpVerificationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PeerRentApp.ForceLight" />
+
+        <!-- Add HomeActivity -->
+        <activity
+            android:name=".HomeActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PeerRentApp.ForceLight" />
+
+    </application>
+
+</manifest>
