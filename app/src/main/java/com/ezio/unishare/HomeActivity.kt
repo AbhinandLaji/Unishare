@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -75,6 +76,44 @@ class HomeActivity : ComponentActivity() {
             PeerRentTheme {
                 UniShareAppScreen(userEmail = userEmail)
             }
+        }
+    }
+}
+
+@Composable
+fun Base64Image(
+    base64String: String,
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null
+) {
+    val imageBitmap = remember(base64String) {
+        try {
+            val pureBase64 = base64String.substringAfter(',')
+            val decodedBytes = Base64.decode(pureBase64, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)?.asImageBitmap()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    if (imageBitmap != null) {
+        Image(
+            bitmap = imageBitmap,
+            contentDescription = contentDescription,
+            modifier = modifier,
+            contentScale = ContentScale.Crop
+        )
+    } else {
+        // Placeholder in case of decoding error
+        Box(
+            modifier = modifier.background(Color.LightGray),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.BrokenImage,
+                contentDescription = "Image load failed",
+                tint = Color.White
+            )
         }
     }
 }
@@ -323,6 +362,7 @@ fun RentalScreen(rentalItems: List<RentalItem>, userEmail: String) {
     val myItems = remember(rentalItems, userEmail) {
         rentalItems.filter { it.ownerEmail == userEmail }
     }
+    val context = LocalContext.current
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("My Listed Items", style = MaterialTheme.typography.titleLarge)
@@ -333,23 +373,41 @@ fun RentalScreen(rentalItems: List<RentalItem>, userEmail: String) {
                 Text("You haven't listed any items for rent yet.")
             }
         } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(myItems) { item ->
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
-                        Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            AsyncImage(
-                                model = item.imageUrl,
+                        Row(
+                            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Base64Image(
+                                base64String = item.imageUrl,
                                 contentDescription = item.name,
-                                modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop
+                                modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp))
                             )
                             Spacer(modifier = Modifier.width(16.dp))
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(item.name, style = MaterialTheme.typography.titleMedium)
                                 Text(item.price, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                            }
+                            IconButton(onClick = {
+                                val databaseRef = FirebaseDatabase.getInstance().getReference("rentals")
+                                databaseRef.child(item.id).removeValue()
+                                    .addOnSuccessListener {
+                                        Toast.makeText(context, "Item deleted", Toast.LENGTH_SHORT).show()
+                                    }
+                                    .addOnFailureListener {
+                                        Toast.makeText(context, "Failed to delete item", Toast.LENGTH_SHORT).show()
+                                    }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete Item",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
                             }
                         }
                     }
@@ -358,6 +416,7 @@ fun RentalScreen(rentalItems: List<RentalItem>, userEmail: String) {
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -447,11 +506,10 @@ fun RentalItemGrid(items: List<RentalItem>, onItemClick: (RentalItem) -> Unit) {
                     modifier = Modifier.padding(8.dp).fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    AsyncImage(
-                        model = item.imageUrl,
+                    Base64Image(
+                        base64String = item.imageUrl,
                         contentDescription = item.name,
-                        modifier = Modifier.height(100.dp).fillMaxWidth().clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop
+                        modifier = Modifier.height(100.dp).fillMaxWidth().clip(RoundedCornerShape(8.dp))
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -520,11 +578,10 @@ fun ItemDetailScreen(navController: NavHostController, itemId: String, rentalIte
                             .height(300.dp),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        AsyncImage(
-                            model = item.imageUrl,
+                        Base64Image(
+                            base64String = item.imageUrl,
                             contentDescription = item.name,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
                 }
@@ -1251,13 +1308,12 @@ fun CategoryItemCard(item: RentalItem, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Product Image
-            AsyncImage(
-                model = item.imageUrl,
+            Base64Image(
+                base64String = item.imageUrl,
                 contentDescription = item.name,
                 modifier = Modifier
                     .size(100.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+                    .clip(RoundedCornerShape(8.dp))
             )
 
             // Product Details
