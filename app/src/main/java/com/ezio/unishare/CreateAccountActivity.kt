@@ -103,6 +103,9 @@ class CreateAccountActivity : AppCompatActivity() {
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 emailLayout.error = "Enter valid email"
                 isValid = false
+            } else if (!email.endsWith(".tkmce.ac.in") && !email.contains(".ac.")) {
+                emailLayout.error = "Please use a valid student email"
+                isValid = false
             }
             if (phone.length != 10) {
                 phoneLayout.error = "Enter valid phone number"
@@ -163,7 +166,7 @@ class CreateAccountActivity : AppCompatActivity() {
         return if (errors.isEmpty()) {
             true
         } else {
-            textViewPasswordCriteriaErrorsCreate.text = errors.joinToString("\n")
+            textViewPasswordCriteriaErrorsCreate.text = errors.joinToString("\\n")
             textViewPasswordCriteriaErrorsCreate.visibility = View.VISIBLE
             false
         }
