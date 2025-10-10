@@ -125,6 +125,7 @@ fun UniShareAppScreen(userEmail: String) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val rentalItems = remember { mutableStateListOf<RentalItem>() }
     var currentUserName by remember { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf("") }
 
     // Fetch all rental items from Firebase
     LaunchedEffect(Unit) {
@@ -169,6 +170,14 @@ fun UniShareAppScreen(userEmail: String) {
         }
     }
 
+    val filteredItems = remember(searchQuery, rentalItems) {
+        if (searchQuery.isBlank()) {
+            rentalItems
+        } else {
+            rentalItems.filter { it.name.contains(searchQuery, ignoreCase = true) }
+        }
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -205,7 +214,10 @@ fun UniShareAppScreen(userEmail: String) {
             Modifier.padding(paddingValues),
             userEmail = userEmail,
             userName = currentUserName,
-            rentalItems = rentalItems)
+            rentalItems = filteredItems,
+            searchQuery = searchQuery,
+            onSearchQueryChange = { searchQuery = it }
+        )
     }
 }
 
@@ -215,7 +227,9 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     userEmail: String,
     userName: String,
-    rentalItems: List<RentalItem>
+    rentalItems: List<RentalItem>,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -247,7 +261,12 @@ fun AppNavHost(
         }
     ) {
         composable(Screen.Home.route) {
-            HomeScreenContent(navController = navController, rentalItems = rentalItems)
+            HomeScreenContent(
+                navController = navController,
+                rentalItems = rentalItems,
+                searchQuery = searchQuery,
+                onSearchQueryChange = onSearchQueryChange
+            )
         }
         composable(Screen.Rentals.route) { 
             RentalScreen(rentalItems = rentalItems, userEmail = userEmail) 
@@ -260,7 +279,7 @@ fun AppNavHost(
             arguments = listOf(navArgument("itemId") { type = NavType.StringType })
         ) { backStackEntry ->
             val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
-            ItemDetailScreen(navController = navController, itemId = itemId, rentalItems = rentalItems)
+            ItemDetailScreen(navController = navController, itemId = itemId, rentalItems = rentalItems, currentUserEmail = userEmail)
         }
         composable(
             route = "category/{categoryName}",
@@ -329,30 +348,78 @@ fun CustomTopBar(scrollBehavior: TopAppBarScrollBehavior?, currentRoute: String?
 }
 
 @Composable
-fun HomeScreenContent(navController: NavHostController, rentalItems: List<RentalItem>) {
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 16.dp)
-    ) {
-        item { SearchBarSection() }
-        item { BannerCarousel() }
-        item { CategoryRow(navController = navController) }
-        item {
-            Text(
-                "Popular Rentals",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-        }
-        item {
-            RentalItemGrid(
-                items = rentalItems,
-                onItemClick = { item ->
-                    navController.navigate("item_detail/${item.id}")
+fun HomeScreenContent(
+    navController: NavHostController, 
+    rentalItems: List<RentalItem>,
+    searchQuery: String, 
+    onSearchQueryChange: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        SearchBarSection(searchQuery, onSearchQueryChange)
+
+        if (searchQuery.isBlank()) {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                item { BannerCarousel() }
+                item { CategoryRow(navController = navController) }
+                item {
+                    Text(
+                        "Popular Rentals",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
                 }
+                item {
+                    RentalItemGrid(
+                        items = rentalItems,
+                        onItemClick = { item ->
+                            navController.navigate("item_detail/${item.id}")
+                        }
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                items(rentalItems) { item ->
+                    SearchResultItem(item = item) {
+                        navController.navigate("item_detail/${item.id}")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SearchResultItem(item: RentalItem, onItemClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clickable { onItemClick() },
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Base64Image(
+                base64String = item.imageUrl,
+                contentDescription = item.name,
+                modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp))
             )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(item.name, style = MaterialTheme.typography.titleMedium)
+                Text(item.price, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+            }
         }
     }
 }
@@ -420,15 +487,23 @@ fun RentalScreen(rentalItems: List<RentalItem>, userEmail: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBarSection() {
+fun SearchBarSection(searchQuery: String, onSearchQueryChange: (String) -> Unit) {
     OutlinedTextField(
-        value = "",
-        onValueChange = { },
+        value = searchQuery,
+        onValueChange = onSearchQueryChange,
         placeholder = { Text("Search for rentals...") },
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         singleLine = true,
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search") },
-        trailingIcon = { Icon(Icons.Filled.Mic, contentDescription = "Mic") }
+        trailingIcon = {
+            if (searchQuery.isNotEmpty()) {
+                IconButton(onClick = { onSearchQueryChange("") }) {
+                    Icon(Icons.Filled.Close, contentDescription = "Clear search")
+                }
+            } else {
+                Icon(Icons.Filled.Mic, contentDescription = "Mic")
+            }
+        }
     )
 }
 
@@ -531,8 +606,9 @@ fun RentalItemGrid(items: List<RentalItem>, onItemClick: (RentalItem) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ItemDetailScreen(navController: NavHostController, itemId: String, rentalItems: List<RentalItem>) {
+fun ItemDetailScreen(navController: NavHostController, itemId: String, rentalItems: List<RentalItem>, currentUserEmail: String) {
     val item = remember(itemId, rentalItems) { rentalItems.find { it.id == itemId } }
+    val context = LocalContext.current
 
     if (item == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -746,9 +822,20 @@ fun ItemDetailScreen(navController: NavHostController, itemId: String, rentalIte
                         }
 
                         OutlinedButton(
-                            onClick = { /* Handle contact owner */ },
+                            onClick = {
+                                if (currentUserEmail != item.ownerEmail) {
+                                    val intent = Intent(context, ConversationActivity::class.java).apply {
+                                        putExtra("CURRENT_USER_EMAIL", currentUserEmail)
+                                        putExtra("OTHER_USER_EMAIL", item.ownerEmail)
+                                    }
+                                    context.startActivity(intent)
+                                } else {
+                                    Toast.makeText(context, "You cannot chat with yourself.", Toast.LENGTH_SHORT).show()
+                                }
+                            },
                             modifier = Modifier.weight(1f).height(50.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = currentUserEmail != item.ownerEmail
                         ) {
                             Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null)
                             Spacer(modifier = Modifier.width(4.dp))

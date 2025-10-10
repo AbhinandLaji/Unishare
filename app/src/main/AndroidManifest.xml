@@ -46,6 +46,18 @@
             android:exported="true"
             android:theme="@style/Theme.PeerRentApp.ForceLight" />
 
+        <!-- Add ChatActivity -->
+        <activity
+            android:name=".ChatActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PeerRentApp.ForceLight" />
+
+        <!-- Add ConversationActivity -->
+        <activity
+            android:name=".ConversationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PeerRentApp.ForceLight" />
+
     </application>
 
 </manifest>
