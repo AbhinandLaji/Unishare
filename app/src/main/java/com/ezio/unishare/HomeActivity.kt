@@ -39,6 +39,7 @@ import coil.compose.AsyncImage
 import com.ezio.unishare.ui.theme.PeerRentTheme
 import kotlin.math.*
 import androidx.compose.animation.AnimatedContentTransitionScope
+import kotlinx.coroutines.delay
 
 // Data class for rental items
 data class RentalItem(
@@ -260,40 +261,6 @@ fun HomeScreenContent(navController: NavHostController) {
     }
 }
 
-@Composable
-fun RentalScreen() {
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("My Rentals", style = MaterialTheme.typography.titleLarge)
-        Spacer(Modifier.height(16.dp))
-        Text("Currently Rented Items", style = MaterialTheme.typography.titleMedium)
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            items(3) { index ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Text(
-                        "Rented Item ${index + 1}",
-                        modifier = Modifier.padding(12.dp),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-            }
-        }
-        Spacer(Modifier.height(16.dp))
-        Text("Recommended for You", style = MaterialTheme.typography.titleMedium)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(5) { index ->
-                Card(modifier = Modifier.size(120.dp).padding(4.dp)) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        Text("Item $index")
-                    }
-                }
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBarSection() {
@@ -348,6 +315,91 @@ fun CategoryRow(navController: NavHostController) {
         }
     }
 }
+
+@Composable
+fun RentItemConfirmationDialog(
+    itemName: String,
+    ownerName: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var messageToRenter by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Confirm Rental",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Do you want to continue with renting this item?",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Text(
+                    text = "Item: $itemName",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Text(
+                    text = "Owner: $ownerName",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = messageToRenter,
+                    onValueChange = { messageToRenter = it },
+                    label = { Text("Message to Renter") },
+                    placeholder = { Text("Write a message to the owner...") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    maxLines = 4,
+                    minLines = 3,
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(messageToRenter) },
+                shape = RoundedCornerShape(8.dp),
+                enabled = messageToRenter.isNotBlank()
+            ) {
+                Icon(
+                    Icons.Default.Send,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Send Message to Renter")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Cancel")
+            }
+        },
+        shape = RoundedCornerShape(16.dp)
+    )
+}
+
 
 @Composable
 fun RentalItemGrid(items: List<RentalItem>, onItemClick: (RentalItem) -> Unit) {
@@ -409,6 +461,8 @@ fun RentalItemGrid(items: List<RentalItem>, onItemClick: (RentalItem) -> Unit) {
 @Composable
 fun ItemDetailScreen(navController: NavHostController, itemId: String) {
     val item = remember { getSampleRentalItems().find { it.id == itemId } }
+    var showRentalDialog by remember { mutableStateOf(false) }
+    var showSuccessScreen by remember { mutableStateOf(false) }
 
     if (item == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -423,213 +477,241 @@ fun ItemDetailScreen(navController: NavHostController, itemId: String) {
         isVisible = true
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Details") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
+    // Show success screen - takes over entire screen
+    if (showSuccessScreen) {
+        RentalRequestSuccessScreen(
+            itemName = item.name,
+            onComplete = {
+                showSuccessScreen = false
+                navController.navigateUp()
+            }
+        )
+    } else {
+        // Normal detail screen content
+
+        // Show dialog on top
+        if (showRentalDialog) {
+            RentItemConfirmationDialog(
+                itemName = item.name,
+                ownerName = item.ownerName,
+                onDismiss = { showRentalDialog = false },
+                onConfirm = { message ->
+                    showRentalDialog = false
+                    showSuccessScreen = true
                 }
             )
         }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp)
-        ) {
-            item {
-                // Product Image with scale animation
-                AnimatedVisibility(
-                    visible = isVisible,
-                    enter = fadeIn(animationSpec = tween(400)) +
-                            scaleIn(initialScale = 0.8f, animationSpec = tween(400, easing = FastOutSlowInEasing))
-                ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        AsyncImage(
-                            model = item.imageUrl,
-                            contentDescription = item.name,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Item Name and Price with slide animation
-                AnimatedVisibility(
-                    visible = isVisible,
-                    enter = fadeIn(animationSpec = tween(400, delayMillis = 100)) +
-                            slideInVertically(
-                                initialOffsetY = { it / 2 },
-                                animationSpec = tween(400, delayMillis = 100, easing = FastOutSlowInEasing)
-                            )
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = item.name,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = item.price,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Rating and Category with slide animation
-                AnimatedVisibility(
-                    visible = isVisible,
-                    enter = fadeIn(animationSpec = tween(400, delayMillis = 200)) +
-                            slideInVertically(
-                                initialOffsetY = { it / 2 },
-                                animationSpec = tween(400, delayMillis = 200, easing = FastOutSlowInEasing)
-                            )
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Filled.Star,
-                                contentDescription = "Rating",
-                                tint = Color(0xFFFFB300),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                text = " ${item.rating}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Details") },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.navigateUp() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                         }
-
-                        AssistChip(
-                            onClick = { },
-                            label = { Text(item.category) }
-                        )
                     }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Description Card with slide animation
-                AnimatedVisibility(
-                    visible = isVisible,
-                    enter = fadeIn(animationSpec = tween(400, delayMillis = 300)) +
-                            slideInVertically(
-                                initialOffsetY = { it / 2 },
-                                animationSpec = tween(400, delayMillis = 300, easing = FastOutSlowInEasing)
-                            )
-                ) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
+                )
+            }
+        ) { paddingValues ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                item {
+                    // Product Image with scale animation
+                    AnimatedVisibility(
+                        visible = isVisible,
+                        enter = fadeIn(animationSpec = tween(400)) +
+                                scaleIn(initialScale = 0.8f, animationSpec = tween(400, easing = FastOutSlowInEasing))
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = "Description",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = item.description,
-                                style = MaterialTheme.typography.bodyMedium
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(300.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            AsyncImage(
+                                model = item.imageUrl,
+                                contentDescription = item.name,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
                             )
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                // Owner Info Card with slide animation
-                AnimatedVisibility(
-                    visible = isVisible,
-                    enter = fadeIn(animationSpec = tween(400, delayMillis = 400)) +
-                            slideInVertically(
-                                initialOffsetY = { it / 2 },
-                                animationSpec = tween(400, delayMillis = 400, easing = FastOutSlowInEasing)
-                            )
-                ) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
+                    // Item Name and Price with slide animation
+                    AnimatedVisibility(
+                        visible = isVisible,
+                        enter = fadeIn(animationSpec = tween(400, delayMillis = 100)) +
+                                slideInVertically(
+                                    initialOffsetY = { it / 2 },
+                                    animationSpec = tween(400, delayMillis = 100, easing = FastOutSlowInEasing)
+                                )
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                text = "Owner Information",
-                                style = MaterialTheme.typography.titleMedium,
+                                text = item.name,
+                                style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = item.price,
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Rating and Category with slide animation
+                    AnimatedVisibility(
+                        visible = isVisible,
+                        enter = fadeIn(animationSpec = tween(400, delayMillis = 200)) +
+                                slideInVertically(
+                                    initialOffsetY = { it / 2 },
+                                    animationSpec = tween(400, delayMillis = 200, easing = FastOutSlowInEasing)
+                                )
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Person, contentDescription = null)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(item.ownerName)
+                                Icon(
+                                    Icons.Filled.Star,
+                                    contentDescription = "Rating",
+                                    tint = Color(0xFFFFB300),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = " ${item.rating}",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
                             }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Email, contentDescription = null)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(item.ownerEmail, style = MaterialTheme.typography.bodySmall)
+
+                            AssistChip(
+                                onClick = { },
+                                label = { Text(item.category) }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Description Card with slide animation
+                    AnimatedVisibility(
+                        visible = isVisible,
+                        enter = fadeIn(animationSpec = tween(400, delayMillis = 300)) +
+                                slideInVertically(
+                                    initialOffsetY = { it / 2 },
+                                    animationSpec = tween(400, delayMillis = 300, easing = FastOutSlowInEasing)
+                                )
+                    ) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "Description",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = item.description,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Owner Info Card with slide animation
+                    AnimatedVisibility(
+                        visible = isVisible,
+                        enter = fadeIn(animationSpec = tween(400, delayMillis = 400)) +
+                                slideInVertically(
+                                    initialOffsetY = { it / 2 },
+                                    animationSpec = tween(400, delayMillis = 400, easing = FastOutSlowInEasing)
+                                )
+                    ) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "Owner Information",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Person, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(item.ownerName)
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Email, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(item.ownerEmail, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Action Buttons with slide animation
-                AnimatedVisibility(
-                    visible = isVisible,
-                    enter = fadeIn(animationSpec = tween(400, delayMillis = 500)) +
-                            slideInVertically(
-                                initialOffsetY = { it / 2 },
-                                animationSpec = tween(400, delayMillis = 500, easing = FastOutSlowInEasing)
-                            )
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                item {
+                    // Action Buttons with slide animation
+                    AnimatedVisibility(
+                        visible = isVisible,
+                        enter = fadeIn(animationSpec = tween(400, delayMillis = 500)) +
+                                slideInVertically(
+                                    initialOffsetY = { it / 2 },
+                                    animationSpec = tween(400, delayMillis = 500, easing = FastOutSlowInEasing)
+                                )
                     ) {
-                        Button(
-                            onClick = { /* Handle rent action */ },
-                            modifier = Modifier.weight(1f).height(50.dp),
-                            shape = RoundedCornerShape(12.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("Rent Now")
-                        }
+                            Button(
+                                onClick = { showRentalDialog = true },
+                                modifier = Modifier.weight(1f).height(50.dp),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Rent Now")
+                            }
 
-                        OutlinedButton(
-                            onClick = { /* Handle contact owner */ },
-                            modifier = Modifier.weight(1f).height(50.dp),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(Icons.Default.Chat, contentDescription = null)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Contact")
+                            OutlinedButton(
+                                onClick = { /* Handle contact owner */ },
+                                modifier = Modifier.weight(1f).height(50.dp),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(Icons.Default.Chat, contentDescription = null)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Contact")
+                            }
                         }
                     }
                 }
@@ -637,6 +719,7 @@ fun ItemDetailScreen(navController: NavHostController, itemId: String) {
         }
     }
 }
+
 
 data class NavigationItem(val route: String, val label: String, val icon: ImageVector)
 
@@ -806,6 +889,318 @@ fun DrawScope.drawPillShape(center: Offset, width: Float, height: Float, color: 
     )
 }
 
+// NEW: Success Screen Composable
+@Composable
+fun SuccessScreen(
+    productName: String,
+    onComplete: () -> Unit
+) {
+    var showCheckmark by remember { mutableStateOf(false) }
+    var showText by remember { mutableStateOf(false) }
+    var showDetails by remember { mutableStateOf(false) }
+
+    // Animate checkmark appearance
+    val checkmarkScale by animateFloatAsState(
+        targetValue = if (showCheckmark) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "checkmarkScale"
+    )
+
+    // Rotation animation for checkmark
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+
+    LaunchedEffect(Unit) {
+        delay(200)
+        showCheckmark = true
+        delay(400)
+        showText = true
+        delay(300)
+        showDetails = true
+        delay(2500)
+        onComplete()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(32.dp)
+        ) {
+            // Success checkmark circle
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .scale(checkmarkScale * pulseScale)
+                    .background(
+                        color = Color(0xFF4CAF50),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Success",
+                    modifier = Modifier.size(80.dp),
+                    tint = Color.White
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Success message with fade in animation
+            AnimatedVisibility(
+                visible = showText,
+                enter = fadeIn(animationSpec = tween(500)) +
+                        slideInVertically(
+                            animationSpec = tween(500),
+                            initialOffsetY = { it / 2 }
+                        )
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Success!",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4CAF50)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "The item has been successfully placed for rent",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Product details card
+            AnimatedVisibility(
+                visible = showDetails,
+                enter = fadeIn(animationSpec = tween(500)) +
+                        slideInVertically(
+                            animationSpec = tween(500),
+                            initialOffsetY = { it / 2 }
+                        )
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ShoppingCart,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = productName,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Your item is now visible to other users",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RentalRequestSuccessScreen(
+    itemName: String,
+    onComplete: () -> Unit
+) {
+    var showCheckmark by remember { mutableStateOf(false) }
+    var showText by remember { mutableStateOf(false) }
+    var showDetails by remember { mutableStateOf(false) }
+
+    val checkmarkScale by animateFloatAsState(
+        targetValue = if (showCheckmark) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "checkmarkScale"
+    )
+
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(200)
+        showCheckmark = true
+        kotlinx.coroutines.delay(400)
+        showText = true
+        kotlinx.coroutines.delay(300)
+        showDetails = true
+        kotlinx.coroutines.delay(2500)
+        onComplete()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(32.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .scale(checkmarkScale * pulseScale)
+                    .background(
+                        color = Color(0xFF4CAF50),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Success",
+                    modifier = Modifier.size(80.dp),
+                    tint = Color.White
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            AnimatedVisibility(
+                visible = showText,
+                enter = fadeIn(animationSpec = tween(500)) +
+                        slideInVertically(
+                            animationSpec = tween(500),
+                            initialOffsetY = { it / 2 }
+                        )
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Request Sent!",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4CAF50)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Your renter has been informed",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            AnimatedVisibility(
+                visible = showDetails,
+                enter = fadeIn(animationSpec = tween(500)) +
+                        slideInVertically(
+                            animationSpec = tween(500),
+                            initialOffsetY = { it / 2 }
+                        )
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = itemName,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "The owner will review your request and respond soon",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+// UPDATED: AddProductScreen with Success Screen Integration
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddProductScreen(navController: NavHostController, userEmail: String) {
@@ -814,181 +1209,193 @@ fun AddProductScreen(navController: NavHostController, userEmail: String) {
     var productDescription by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Electronics") }
     var expanded by remember { mutableStateOf(false) }
+    var showSuccessScreen by remember { mutableStateOf(false) }
     val categories = listOf("Books", "Electronics", "Furniture", "Sports", "Notes", "Other")
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add Product for Rent") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+    // Show success screen overlay
+    if (showSuccessScreen) {
+        SuccessScreen(
+            productName = productName,
+            onComplete = {
+                showSuccessScreen = false
+                navController.navigateUp()
+            }
+        )
+    } else {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Add Product for Rent") },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.navigateUp() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
                     }
-                }
-            )
-        }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Text(
-                    "List Your Item",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    "Fill in the details to rent out your product",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
                 )
             }
-
-            item {
-                // Product Image Upload (Placeholder)
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clickable { /* Handle image upload */ },
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ) { paddingValues ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Text(
+                        "List Your Item",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
                     )
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                    Text(
+                        "Fill in the details to rent out your product",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                }
+
+                item {
+                    // Product Image Upload (Placeholder)
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clickable { /* Handle image upload */ },
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                Icons.Filled.Add,
-                                contentDescription = "Add Image",
-                                modifier = Modifier.size(48.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Tap to add product image")
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    Icons.Filled.Add,
+                                    contentDescription = "Add Image",
+                                    modifier = Modifier.size(48.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("Tap to add product image")
+                            }
                         }
                     }
                 }
-            }
 
-            item {
-                OutlinedTextField(
-                    value = productName,
-                    onValueChange = { productName = it },
-                    label = { Text("Product Name") },
-                    placeholder = { Text("e.g., Canon DSLR Camera") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Default.ShoppingCart, contentDescription = null) }
-                )
-            }
-
-            item {
-                OutlinedTextField(
-                    value = productPrice,
-                    onValueChange = { productPrice = it },
-                    label = { Text("Rental Price per Day") },
-                    placeholder = { Text("e.g., 200") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    prefix = { Text("₹ ") },
-                    suffix = { Text("/day") },
-                    leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) }
-                )
-            }
-
-            item {
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
-                ) {
+                item {
                     OutlinedTextField(
-                        value = selectedCategory,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Category") },
-                        trailingIcon = {
+                        value = productName,
+                        onValueChange = { productName = it },
+                        label = { Text("Product Name") },
+                        placeholder = { Text("e.g., Canon DSLR Camera") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.ShoppingCart, contentDescription = null) }
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = productPrice,
+                        onValueChange = { productPrice = it },
+                        label = { Text("Rental Price per Day") },
+                        placeholder = { Text("e.g., 200") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        prefix = { Text("₹ ") },
+                        suffix = { Text("/day") },
+                        leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) }
+                    )
+                }
+
+                item {
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedCategory,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Category") },
+                            trailingIcon = {
+                                Icon(
+                                    if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                    contentDescription = "Dropdown"
+                                )
+                            },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            categories.forEach { category ->
+                                DropdownMenuItem(
+                                    text = { Text(category) },
+                                    onClick = {
+                                        selectedCategory = category
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = productDescription,
+                        onValueChange = { productDescription = it },
+                        label = { Text("Description") },
+                        placeholder = { Text("Describe your product, its condition, and any additional details...") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp),
+                        maxLines = 6,
+                        leadingIcon = {
                             Icon(
-                                if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                contentDescription = "Dropdown"
+                                Icons.Default.DateRange,
+                                contentDescription = null
                             )
+                        }
+                    )
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = {
+                            // TODO: Save product to Firebase
+                            // Show success screen
+                            showSuccessScreen = true
                         },
                         modifier = Modifier
-                            .menuAnchor()
                             .fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                            .height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        enabled = productName.isNotBlank() && productPrice.isNotBlank() && productDescription.isNotBlank()
                     ) {
-                        categories.forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text(category) },
-                                onClick = {
-                                    selectedCategory = category
-                                    expanded = false
-                                }
-                            )
-                        }
+                        Icon(Icons.Default.Check, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Place item for Rent", fontSize = 16.sp)
                     }
-                }
-            }
 
-            item {
-                OutlinedTextField(
-                    value = productDescription,
-                    onValueChange = { productDescription = it },
-                    label = { Text("Description") },
-                    placeholder = { Text("Describe your product, its condition, and any additional details...") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp),
-                    maxLines = 6,
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.DateRange,
-                            contentDescription = null
-                        )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Cancel", fontSize = 16.sp)
                     }
-                )
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Button(
-                    onClick = {
-                        // TODO: Save product to Firebase
-                        // For now, just navigate back
-                        navController.navigateUp()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = productName.isNotBlank() && productPrice.isNotBlank() && productDescription.isNotBlank()
-                ) {
-                    Icon(Icons.Default.Check, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("List Product", fontSize = 16.sp)
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedButton(
-                    onClick = { navController.navigateUp() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Cancel", fontSize = 16.sp)
                 }
             }
         }
