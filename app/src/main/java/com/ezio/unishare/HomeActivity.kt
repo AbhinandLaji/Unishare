@@ -49,7 +49,6 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.io.ByteArrayOutputStream
-import java.util.*
 import kotlin.math.*
 import androidx.compose.animation.AnimatedContentTransitionScope
 
@@ -211,7 +210,9 @@ fun AppNavHost(
         composable(Screen.Home.route) {
             HomeScreenContent(navController = navController, rentalItems = rentalItems)
         }
-        composable(Screen.Rentals.route) { RentalScreen() }
+        composable(Screen.Rentals.route) { 
+            RentalScreen(rentalItems = rentalItems, userEmail = userEmail) 
+        }
         composable(Screen.Profile.route) {
             ProfileScreen(navController = navController, userEmail = userEmail)
         }
@@ -244,7 +245,7 @@ fun AppNavHost(
 fun CustomTopBar(scrollBehavior: TopAppBarScrollBehavior?, currentRoute: String?, navController: NavHostController, userEmail: String) {
     val title = when (currentRoute) {
         Screen.Home.route -> "Home"
-        Screen.Rentals.route -> "Rentals"
+        Screen.Rentals.route -> "My Rentals"
         else -> ""
     }
     val subTitle = if (currentRoute == Screen.Home.route) userEmail else null
@@ -318,32 +319,39 @@ fun HomeScreenContent(navController: NavHostController, rentalItems: List<Rental
 }
 
 @Composable
-fun RentalScreen() {
+fun RentalScreen(rentalItems: List<RentalItem>, userEmail: String) {
+    val myItems = remember(rentalItems, userEmail) {
+        rentalItems.filter { it.ownerEmail == userEmail }
+    }
+
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("My Rentals", style = MaterialTheme.typography.titleLarge)
+        Text("My Listed Items", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(16.dp))
-        Text("Currently Rented Items", style = MaterialTheme.typography.titleMedium)
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            items(3) { index ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Text(
-                        "Rented Item ${index + 1}",
-                        modifier = Modifier.padding(12.dp),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
+
+        if (myItems.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("You haven't listed any items for rent yet.")
             }
-        }
-        Spacer(Modifier.height(16.dp))
-        Text("Recommended for You", style = MaterialTheme.typography.titleMedium)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(5) { index ->
-                Card(modifier = Modifier.size(120.dp).padding(4.dp)) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        Text("Item $index")
+        } else {
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(myItems) { item ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            AsyncImage(
+                                model = item.imageUrl,
+                                contentDescription = item.name,
+                                modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column {
+                                Text(item.name, style = MaterialTheme.typography.titleMedium)
+                                Text(item.price, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
                     }
                 }
             }
