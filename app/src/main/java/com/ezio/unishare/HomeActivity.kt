@@ -190,7 +190,7 @@ fun UniShareAppScreen(userEmail: String) {
         bottomBar = {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
-            if (currentRoute != "item_detail/{itemId}" && currentRoute != "add_product") {
+            if (currentRoute != "item_detail/{itemId}" && currentRoute != "add_product" && currentRoute != "notifications") {
                 SmoothGooeyBottomNav(navController = navController)
             }
         },
@@ -268,8 +268,8 @@ fun AppNavHost(
                 onSearchQueryChange = onSearchQueryChange
             )
         }
-        composable(Screen.Rentals.route) { 
-            RentalScreen(rentalItems = rentalItems, userEmail = userEmail) 
+        composable(Screen.Rentals.route) {
+            RentalScreen(rentalItems = rentalItems, userEmail = userEmail)
         }
         composable(Screen.Profile.route) {
             ProfileScreen(navController = navController, userEmail = userEmail)
@@ -295,6 +295,10 @@ fun AppNavHost(
                 userName = userName
             )
         }
+        // --- MODIFICATION: Added the route for the notifications screen ---
+        composable("notifications") {
+            NotificationsScreen(navController = navController, currentUserEmail = userEmail)
+        }
     }
 }
 
@@ -318,14 +322,16 @@ fun CustomTopBar(scrollBehavior: TopAppBarScrollBehavior?, currentRoute: String?
         },
         actions = {
             if (currentRoute == Screen.Home.route) {
+                // --- MODIFICATION: Added the Notification Icon ---
+                IconButton(onClick = { navController.navigate("notifications") }) {
+                    Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+                }
                 IconButton(onClick = {
                     val intent = Intent(context, ChatActivity::class.java)
                     intent.putExtra("CURRENT_USER_EMAIL", userEmail)
                     context.startActivity(intent)
                 }) { Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = "Messages") }
-
                 Spacer(modifier = Modifier.width(8.dp))
-
                 IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
                     Icon(
                         imageVector = Icons.Filled.Person,
@@ -349,9 +355,9 @@ fun CustomTopBar(scrollBehavior: TopAppBarScrollBehavior?, currentRoute: String?
 
 @Composable
 fun HomeScreenContent(
-    navController: NavHostController, 
+    navController: NavHostController,
     rentalItems: List<RentalItem>,
-    searchQuery: String, 
+    searchQuery: String,
     onSearchQueryChange: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -604,23 +610,110 @@ fun RentalItemGrid(items: List<RentalItem>, onItemClick: (RentalItem) -> Unit) {
     }
 }
 
+// --- MODIFICATION: The entire ItemDetailScreen has been replaced with this new version ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemDetailScreen(navController: NavHostController, itemId: String, rentalItems: List<RentalItem>, currentUserEmail: String) {
     val item = remember(itemId, rentalItems) { rentalItems.find { it.id == itemId } }
     val context = LocalContext.current
+    var userName by remember { mutableStateOf("") }
+
+    // State for the rental request dialog
+    var showRentDialog by remember { mutableStateOf(false) }
+    var rentalDuration by remember { mutableStateOf("") }
+
+    // State to hold the status of the rental request for this item by this user
+    var requestStatus by remember { mutableStateOf<String?>(null) } // null = no request, "pending", "accepted", "rejected"
+    val database = FirebaseDatabase.getInstance()
+
+    // Fetch current user's first name to use in the request
+    LaunchedEffect(currentUserEmail) {
+        val userKey = currentUserEmail.replace(".", "_")
+        database.getReference("users").child(userKey).child("firstName").get()
+            .addOnSuccessListener { nameSnapshot ->
+                userName = nameSnapshot.getValue(String::class.java) ?: ""
+            }
+    }
+
+    // Fetch the status of any existing rental request for this item by this user
+    LaunchedEffect(item, currentUserEmail) {
+        if (item != null) {
+            database.getReference("rent_requests")
+                .orderByChild("itemId").equalTo(item.id)
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        var foundStatus: String? = null
+                        for (child in snapshot.children) {
+                            val request = child.getValue(RentalRequest::class.java)
+                            if (request != null && request.renterEmail == currentUserEmail) {
+                                foundStatus = request.status
+                                break // Found the request from this user
+                            }
+                        }
+                        requestStatus = foundStatus
+                    }
+                    override fun onCancelled(error: DatabaseError) {}
+                })
+        }
+    }
 
     if (item == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Item not found")
-        }
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Item not found") }
         return
     }
 
     var isVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { isVisible = true }
 
-    LaunchedEffect(Unit) {
-        isVisible = true
+    // This is the pop-up dialog for entering rental duration
+    if (showRentDialog) {
+        AlertDialog(
+            onDismissRequest = { showRentDialog = false },
+            title = { Text("Request to Rent") },
+            text = {
+                Column {
+                    Text("Enter the duration you wish to rent this item for.")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = rentalDuration,
+                        onValueChange = { rentalDuration = it },
+                        label = { Text("Duration (e.g., 2 days, 1 week)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (rentalDuration.isNotBlank() && userName.isNotBlank()) {
+                            val requestId = database.getReference("rent_requests").push().key ?: ""
+                            val newRequest = RentalRequest(
+                                requestId = requestId,
+                                itemId = item.id,
+                                itemName = item.name,
+                                ownerEmail = item.ownerEmail,
+                                renterEmail = currentUserEmail,
+                                renterName = userName,
+                                duration = rentalDuration,
+                                status = "pending",
+                                timestamp = System.currentTimeMillis()
+                            )
+                            database.getReference("rent_requests").child(requestId).setValue(newRequest)
+                                .addOnSuccessListener {
+                                    Toast.makeText(context, "Rental request sent!", Toast.LENGTH_SHORT).show()
+                                    showRentDialog = false
+                                    rentalDuration = ""
+                                }
+                        } else {
+                            Toast.makeText(context, "Please enter a duration.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                ) { Text("Send Request") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRentDialog = false }) { Text("Cancel") }
+            }
+        )
     }
 
     Scaffold(
@@ -678,17 +771,8 @@ fun ItemDetailScreen(navController: NavHostController, itemId: String, rentalIte
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = item.name,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = item.price,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text(text = item.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                        Text(text = item.price, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -698,32 +782,14 @@ fun ItemDetailScreen(navController: NavHostController, itemId: String, rentalIte
                 AnimatedVisibility(
                     visible = isVisible,
                     enter = fadeIn(animationSpec = tween(400, delayMillis = 200)) +
-                            slideInVertically(
-                                initialOffsetY = { it / 2 },
-                                animationSpec = tween(400, delayMillis = 200, easing = FastOutSlowInEasing)
-                            )
+                            slideInVertically(initialOffsetY = { it / 2 }, animationSpec = tween(400, delayMillis = 200, easing = FastOutSlowInEasing))
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Filled.Star,
-                                contentDescription = "Rating",
-                                tint = Color(0xFFFFB300),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                text = " ${item.rating}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            Icon(Icons.Filled.Star, contentDescription = "Rating", tint = Color(0xFFFFB300), modifier = Modifier.size(20.dp))
+                            Text(text = " ${item.rating}", style = MaterialTheme.typography.bodyMedium)
                         }
-
-                        AssistChip(
-                            onClick = { },
-                            label = { Text(item.category) }
-                        )
+                        AssistChip(onClick = { }, label = { Text(item.category) })
                     }
                 }
 
@@ -733,28 +799,13 @@ fun ItemDetailScreen(navController: NavHostController, itemId: String, rentalIte
                 AnimatedVisibility(
                     visible = isVisible,
                     enter = fadeIn(animationSpec = tween(400, delayMillis = 300)) +
-                            slideInVertically(
-                                initialOffsetY = { it / 2 },
-                                animationSpec = tween(400, delayMillis = 300, easing = FastOutSlowInEasing)
-                            )
+                            slideInVertically(initialOffsetY = { it / 2 }, animationSpec = tween(400, delayMillis = 300, easing = FastOutSlowInEasing))
                 ) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
+                    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = "Description",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text(text = "Description", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = item.description,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            Text(text = item.description, style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
@@ -765,23 +816,11 @@ fun ItemDetailScreen(navController: NavHostController, itemId: String, rentalIte
                 AnimatedVisibility(
                     visible = isVisible,
                     enter = fadeIn(animationSpec = tween(400, delayMillis = 400)) +
-                            slideInVertically(
-                                initialOffsetY = { it / 2 },
-                                animationSpec = tween(400, delayMillis = 400, easing = FastOutSlowInEasing)
-                            )
+                            slideInVertically(initialOffsetY = { it / 2 }, animationSpec = tween(400, delayMillis = 400, easing = FastOutSlowInEasing))
                 ) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
+                    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = "Owner Information",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text(text = "Owner Information", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Person, contentDescription = null)
@@ -804,38 +843,36 @@ fun ItemDetailScreen(navController: NavHostController, itemId: String, rentalIte
                 AnimatedVisibility(
                     visible = isVisible,
                     enter = fadeIn(animationSpec = tween(400, delayMillis = 500)) +
-                            slideInVertically(
-                                initialOffsetY = { it / 2 },
-                                animationSpec = tween(400, delayMillis = 500, easing = FastOutSlowInEasing)
-                            )
+                            slideInVertically(initialOffsetY = { it / 2 }, animationSpec = tween(400, delayMillis = 500, easing = FastOutSlowInEasing))
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
-                            onClick = { /* Handle rent action */ },
+                            onClick = { showRentDialog = true },
                             modifier = Modifier.weight(1f).height(50.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = currentUserEmail != item.ownerEmail && requestStatus == null
                         ) {
-                            Text("Rent Now")
+                            Text(
+                                when (requestStatus) {
+                                    "pending" -> "Request Sent"
+                                    "accepted" -> "Request Accepted"
+                                    "rejected" -> "Request Rejected"
+                                    else -> "Rent Now"
+                                }
+                            )
                         }
 
                         OutlinedButton(
                             onClick = {
-                                if (currentUserEmail != item.ownerEmail) {
-                                    val intent = Intent(context, ConversationActivity::class.java).apply {
-                                        putExtra("CURRENT_USER_EMAIL", currentUserEmail)
-                                        putExtra("OTHER_USER_EMAIL", item.ownerEmail)
-                                    }
-                                    context.startActivity(intent)
-                                } else {
-                                    Toast.makeText(context, "You cannot chat with yourself.", Toast.LENGTH_SHORT).show()
+                                val intent = Intent(context, ConversationActivity::class.java).apply {
+                                    putExtra("CURRENT_USER_EMAIL", currentUserEmail)
+                                    putExtra("OTHER_USER_EMAIL", item.ownerEmail)
                                 }
+                                context.startActivity(intent)
                             },
                             modifier = Modifier.weight(1f).height(50.dp),
                             shape = RoundedCornerShape(12.dp),
-                            enabled = currentUserEmail != item.ownerEmail
+                            enabled = requestStatus == "accepted" // Enabled ONLY if request is accepted
                         ) {
                             Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null)
                             Spacer(modifier = Modifier.width(4.dp))
@@ -848,6 +885,7 @@ fun ItemDetailScreen(navController: NavHostController, itemId: String, rentalIte
     }
 }
 
+// All of the following composables are your original code, unchanged.
 data class NavigationItem(val route: String, val label: String, val icon: ImageVector)
 
 @Composable
@@ -1223,7 +1261,7 @@ fun AddProductScreen(
                                 ownerEmail = userEmail,
                                 imageUrl = imageAsString
                             )
-                            
+
                             val database = FirebaseDatabase.getInstance()
                             val rentalsRef = database.getReference("rentals")
 
