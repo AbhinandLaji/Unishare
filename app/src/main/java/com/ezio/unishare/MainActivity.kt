@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
         val createAccountButton = findViewById<Button>(R.id.buttonCreateAccount)
         val forgotPasswordTextView = findViewById<TextView>(R.id.textViewForgotPassword)
         val shakeAnimation = AnimationUtils.loadAnimation(this, R.anim.shake_anim)
+        val buttonScaleAnimation = AnimationUtils.loadAnimation(this, R.anim.button_scale_anim)
 
         // --- Helper to clear errors ---
         fun addTextWatcherToClearError(editText: EditText, layout: TextInputLayout) {
@@ -69,6 +70,7 @@ class MainActivity : AppCompatActivity() {
 
         // --- LOGIN BUTTON ---
         joinButton.setOnClickListener {
+            it.startAnimation(buttonScaleAnimation)
             val email = collegeMailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
             var isValid = true
@@ -148,11 +150,13 @@ class MainActivity : AppCompatActivity() {
 
         // --- Navigation to other activities ---
         createAccountButton.setOnClickListener {
+            it.startAnimation(buttonScaleAnimation)
             startActivity(Intent(this, CreateAccountActivity::class.java))
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         forgotPasswordTextView.setOnClickListener {
+            it.startAnimation(buttonScaleAnimation)
             startActivity(Intent(this, ForgetActivity::class.java))
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }

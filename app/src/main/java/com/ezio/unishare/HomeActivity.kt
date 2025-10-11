@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.util.Base64
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -430,65 +431,6 @@ fun SearchResultItem(item: RentalItem, onItemClick: () -> Unit) {
     }
 }
 
-@Composable
-fun RentalScreen(rentalItems: List<RentalItem>, userEmail: String) {
-    val myItems = remember(rentalItems, userEmail) {
-        rentalItems.filter { it.ownerEmail == userEmail }
-    }
-    val context = LocalContext.current
-
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("My Listed Items", style = MaterialTheme.typography.titleLarge)
-        Spacer(Modifier.height(16.dp))
-
-        if (myItems.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("You haven't listed any items for rent yet.")
-            }
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(myItems) { item ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp).fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Base64Image(
-                                base64String = item.imageUrl,
-                                contentDescription = item.name,
-                                modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp))
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(item.name, style = MaterialTheme.typography.titleMedium)
-                                Text(item.price, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-                            }
-                            IconButton(onClick = {
-                                val databaseRef = FirebaseDatabase.getInstance().getReference("rentals")
-                                databaseRef.child(item.id).removeValue()
-                                    .addOnSuccessListener {
-                                        Toast.makeText(context, "Item deleted", Toast.LENGTH_SHORT).show()
-                                    }
-                                    .addOnFailureListener {
-                                        Toast.makeText(context, "Failed to delete item", Toast.LENGTH_SHORT).show()
-                                    }
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Delete Item",
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
