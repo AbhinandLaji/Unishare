@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "907468917530",
+    "project_id": "peerrentapp",
+    "storage_bucket": "peerrentapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:907468917530:android:453482ddcfdf696442baa3",
+        "android_client_info": {
+          "package_name": "com.ezio.unishare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMXXG5mSRmLEaY5yth7ZabExCwlfnW0a0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
