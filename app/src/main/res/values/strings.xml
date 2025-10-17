@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">UniShare</string>
+    <string name="splash_image_description">Splash screen image</string>
+    <string name="welcome_image_description">Welcome to UniShare Banner</string>
+
+    <!-- <string name="welcome_image_description">Welcome image for UniShare</string> -->
+</resources>
