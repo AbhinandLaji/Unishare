@@ -308,51 +308,35 @@ fun OwnerRentalItemCard(
                     )
                 }
             },
+
             confirmButton = {
                 Button(
+                    // In RentalScreen.kt -> OwnerRentalItemCard -> AlertDialog -> confirmButton
+
                     onClick = {
-                        // Update the rental to mark as returned
-                        val updates = mapOf(
-                            "returned" to true,
-                            "returnedAt" to System.currentTimeMillis()
-                        )
+                        // 1. Get references to the active rental and the original request
+                        val activeRentalRef = database.getReference("active_rentals").child(activeRental.requestId)
+                        val rentRequestRef = database.getReference("rent_requests").child(activeRental.requestId)
 
-                        database.getReference("active_rentals")
-                            .child(activeRental.requestId)
-                            .updateChildren(updates)
+                        // 2. Delete the active rental session
+                        activeRentalRef.removeValue()
                             .addOnSuccessListener {
-                                // Also update rent_requests status
-                                database.getReference("rent_requests")
-                                    .child(activeRental.requestId)
-                                    .child("status")
-                                    .setValue("returned")
+                                // 3. Delete the original rental request to clean up the database
+                                rentRequestRef.removeValue()
                                     .addOnSuccessListener {
-                                        // Optional: Copy to rental_history for permanent record
-                                        database.getReference("rental_history")
-                                            .child(activeRental.requestId)
-                                            .setValue(activeRental.copy(returned = true))
-
                                         Toast.makeText(
                                             context,
-                                            "✓ Item marked as returned!",
-                                            Toast.LENGTH_SHORT
+                                            "✓ Rental completed and item is now hidden.",
+                                            Toast.LENGTH_LONG
                                         ).show()
                                         showReturnDialog = false
                                     }
                                     .addOnFailureListener { e ->
-                                        Toast.makeText(
-                                            context,
-                                            "Failed to update status: ${e.message}",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                        Toast.makeText(context, "Cleanup Error: ${e.message}", Toast.LENGTH_SHORT).show()
                                     }
                             }
                             .addOnFailureListener { e ->
-                                Toast.makeText(
-                                    context,
-                                    "Failed to mark as returned: ${e.message}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                Toast.makeText(context, "Error removing active rental: ${e.message}", Toast.LENGTH_SHORT).show()
                             }
                     },
                     colors = ButtonDefaults.buttonColors(

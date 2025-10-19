@@ -138,6 +138,8 @@ fun RequestItemCard(request: RentalRequest) {
             }
     }
 
+    // In NotificationsScreen.kt -> RequestItemCard
+
     fun acceptRequest() {
         isProcessing = true
         val database = FirebaseDatabase.getInstance()
@@ -148,56 +150,52 @@ fun RequestItemCard(request: RentalRequest) {
             .child("status")
             .setValue("accepted")
             .addOnSuccessListener {
-                // 2. Parse duration and calculate end time
-                val durationInMillis = parseDurationToMillis(request.duration)
-                val startTime = System.currentTimeMillis()
-                val endTime = startTime + durationInMillis
-
-                // 3. Create ActiveRental object
-                val activeRental = ActiveRental(
-                    requestId = request.requestId,
-                    itemId = request.itemId,
-                    itemName = request.itemName,
-                    ownerEmail = request.ownerEmail,
-                    renterEmail = request.renterEmail,
-                    rentalStartTime = startTime,
-                    rentalEndTime = endTime
-                )
-
-                // 4. Save to active_rentals node
-                database.getReference("active_rentals")
-                    .child(request.requestId)
-                    .setValue(activeRental)
+                // 2. THIS IS THE FIX: Mark the item as unavailable in the main /rentals list
+                database.getReference("rentals")
+                    .child(request.itemId)
+                    .child("available")
+                    .setValue(false) // This makes the card disappear from the home screen
                     .addOnSuccessListener {
-                        isProcessing = false
-                        Toast.makeText(
-                            context,
-                            "Request accepted! Rental timer started.",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        // 3. The rest of your logic...
+                        val durationInMillis = parseDurationToMillis(request.duration)
+                        val startTime = System.currentTimeMillis()
+                        val endTime = startTime + durationInMillis
+
+                        val activeRental = ActiveRental(
+                            requestId = request.requestId,
+                            itemId = request.itemId,
+                            itemName = request.itemName,
+                            ownerEmail = request.ownerEmail,
+                            renterEmail = request.renterEmail,
+                            rentalStartTime = startTime,
+                            rentalEndTime = endTime
+                        )
+
+                        database.getReference("active_rentals")
+                            .child(request.requestId)
+                            .setValue(activeRental)
+                            .addOnSuccessListener {
+                                isProcessing = false
+                                Toast.makeText(context, "Request accepted!", Toast.LENGTH_LONG).show()
+                            }
+                            .addOnFailureListener { e ->
+                                isProcessing = false
+                                // Rollback changes if this fails
+                                database.getReference("rent_requests").child(request.requestId).child("status").setValue("pending")
+                                database.getReference("rentals").child(request.itemId).child("available").setValue(true)
+                                Toast.makeText(context, "Failed to create rental: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
                     }
                     .addOnFailureListener { e ->
                         isProcessing = false
-                        // Rollback the status change
-                        database.getReference("rent_requests")
-                            .child(request.requestId)
-                            .child("status")
-                            .setValue("pending")
-
-                        Toast.makeText(
-                            context,
-                            "Failed to create rental: ${e.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        // Rollback status change
+                        database.getReference("rent_requests").child(request.requestId).child("status").setValue("pending")
+                        Toast.makeText(context, "Failed to update item: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
             }
             .addOnFailureListener { e ->
                 isProcessing = false
-                Toast.makeText(
-                    context,
-                    "Failed to accept request: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(context, "Failed to accept request: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 

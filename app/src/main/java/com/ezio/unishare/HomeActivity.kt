@@ -396,6 +396,14 @@ fun HomeScreenContent(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit
 ) {
+
+
+    // Filter out items that are currently rented
+    val availableItems = remember(rentalItems) {
+        rentalItems.filter { it.available }
+    }
+
+
     Column(modifier = Modifier.fillMaxSize()) {
         SearchBarSection(searchQuery, onSearchQueryChange)
 
@@ -417,7 +425,7 @@ fun HomeScreenContent(
                 }
                 item {
                     RentalItemGrid(
-                        items = rentalItems,
+                        items = availableItems, // ← Changed from rentalItems
                         onItemClick = { item ->
                             navController.navigate("item_detail/${item.id}")
                         }
@@ -429,7 +437,7 @@ fun HomeScreenContent(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                items(rentalItems) { item ->
+                items(availableItems) { item -> // ← Changed from rentalItems
                     SearchResultItem(item = item) {
                         navController.navigate("item_detail/${item.id}")
                     }
@@ -438,7 +446,6 @@ fun HomeScreenContent(
         }
     }
 }
-
 @Composable
 fun SearchResultItem(item: RentalItem, onItemClick: () -> Unit) {
     Card(
@@ -878,7 +885,7 @@ fun ItemDetailScreen(navController: NavHostController, itemId: String, rentalIte
                             },
                             modifier = Modifier.weight(1f).height(50.dp),
                             shape = RoundedCornerShape(12.dp),
-                            enabled = requestStatus == "accepted"
+                            enabled = currentUserEmail != item.ownerEmail  // ← Changed this line
                         ) {
                             Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null)
                             Spacer(modifier = Modifier.width(4.dp))
@@ -1067,6 +1074,7 @@ fun AddProductScreen(
     userEmail: String,
     userName: String
 ) {
+    var fetchedOwnerName by remember { mutableStateOf("") }
     var productName by remember { mutableStateOf("") }
     var productPrice by remember { mutableStateOf("") }
     var productDescription by remember { mutableStateOf("") }
@@ -1080,6 +1088,19 @@ fun AddProductScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         imageUri = uri
+    }
+    LaunchedEffect(userEmail) {
+        val database = FirebaseDatabase.getInstance()
+        val userKey = userEmail.replace(".", "_").replace("@", "_")
+
+        database.getReference("users").child(userKey).get()
+            .addOnSuccessListener { snapshot ->
+                val firstName = snapshot.child("firstName").getValue(String::class.java)
+                fetchedOwnerName = firstName ?: userEmail.substringBefore('@')
+            }
+            .addOnFailureListener {
+                fetchedOwnerName = userEmail.substringBefore('@')
+            }
     }
 
 
@@ -1263,7 +1284,7 @@ fun AddProductScreen(
                                 price = "₹$productPrice",
                                 description = productDescription,
                                 category = selectedCategory,
-                                ownerName = userName,
+                                ownerName = fetchedOwnerName,
                                 ownerEmail = userEmail,
                                 imageUrl = imageAsString
                             )
@@ -1316,8 +1337,9 @@ fun CategoryListScreen(
     rentalItems: List<RentalItem>
 ) {
     val filteredItems = remember(categoryName, rentalItems) {
-        rentalItems.filter { it.category == categoryName }
+        rentalItems.filter { it.category == categoryName && it.available }
     }
+
 
     var isVisible by remember { mutableStateOf(false) }
 
