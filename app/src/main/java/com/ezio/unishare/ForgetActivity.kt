@@ -12,8 +12,6 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.textfield.TextInputLayout
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,13 +37,10 @@ class ForgetActivity : AppCompatActivity() {
     private val otpTimerDuration = 5 * 60 * 1000L // 5 minutes
     private var isTimerRunning = false
     private var correctOtp: String? = null
-    private lateinit var firebaseAuth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_forget)
-
-        firebaseAuth = FirebaseAuth.getInstance()
 
         // --- Find all views ---
         emailEditText = findViewById(R.id.editTextEmail)
@@ -97,10 +92,9 @@ class ForgetActivity : AppCompatActivity() {
                 countDownTimer?.cancel()
                 it.isEnabled = false
 
-
-// --- NEW LOGIC: Directly go to SetNewPasswordActivity with email ---
+                // Directly go to SetNewPasswordActivity with email
                 val intent = Intent(this, SetNewPasswordActivity::class.java)
-                intent.putExtra("EXTRA_EMAIL", userEmail) // ✅ Pass email to next activity
+                intent.putExtra("EXTRA_EMAIL", userEmail)
                 startActivity(intent)
                 finish()
 
@@ -110,8 +104,6 @@ class ForgetActivity : AppCompatActivity() {
                 Toast.makeText(this, "Invalid OTP. Please try again.", Toast.LENGTH_LONG).show()
             }
         }
-
-        // (Resend OTP logic can remain as you had it)
     }
 
     // --- Send OTP in background ---

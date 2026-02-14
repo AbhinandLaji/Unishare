@@ -13,7 +13,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputLayout
-import com.google.firebase.database.FirebaseDatabase
 
 class MainActivity : AppCompatActivity() {
 
@@ -72,50 +71,27 @@ class MainActivity : AppCompatActivity() {
 
             if (!isValid) return@setOnClickListener
 
-            // --- Check password from Realtime Database ---
-            val database = FirebaseDatabase.getInstance()
-            val usersRef = database.getReference("users")
-            val emailKey = email.replace(".", "_") // same format as you save
+            // --- Database Logic Removed ---
+            // Local validation complete. You can now bridge this to your SQL API.
+            Log.d("Login", "Local validation successful for $email")
 
-            usersRef.child(emailKey).get().addOnSuccessListener { snapshot ->
-                if (snapshot.exists()) {
-                    val storedPassword = snapshot.child("password").getValue(String::class.java)
-                    if (storedPassword == password) {
-                        Toast.makeText(this, "Login successful ✅", Toast.LENGTH_SHORT).show()
-                        Log.d("Login", "User $email logged in successfully")
-
-                        // ✅ Save session in SharedPreferences
-                        val sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE)
-                        sharedPref.edit().apply {
-                            putBoolean("isLoggedIn", true)
-                            putString("userEmail", email)
-                            apply()
-                        }
-
-                        // Navigate to Home
-                        val intent = Intent(this, HomeActivity::class.java).apply {
-                            putExtra("USER_EMAIL", email)
-                        }
-                        startActivity(intent)
-                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                        finish()
-                    } else {
-                        passwordLayout.error = "Invalid password!"
-                        passwordLayout.startAnimation(shakeAnimation)
-                        Toast.makeText(this, "Invalid password!", Toast.LENGTH_LONG).show()
-                    }
-                } else {
-                    collegeMailLayout.error = "Invalid email!"
-                    collegeMailLayout.startAnimation(shakeAnimation)
-                    Toast.makeText(this, "Invalid email!", Toast.LENGTH_LONG).show()
-                }
-            }.addOnFailureListener { e ->
-                Toast.makeText(this, "Database error: ${e.message}", Toast.LENGTH_LONG).show()
-                Log.e("Login", "Error reading DB", e)
+            // For now, we simulate a successful login to keep the app flow working
+            val sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE)
+            sharedPref.edit().apply {
+                putBoolean("isLoggedIn", true)
+                putString("userEmail", email)
+                apply()
             }
+
+            val intent = Intent(this, HomeActivity::class.java).apply {
+                putExtra("USER_EMAIL", email)
+            }
+            startActivity(intent)
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            finish()
         }
 
-        // --- Navigation to other activities ---
+        // --- Navigation ---
         createAccountButton.setOnClickListener {
             startActivity(Intent(this, CreateAccountActivity::class.java))
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)

@@ -20,13 +20,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 
-// Data class to hold user information from Firebase
+// Data class to hold user information
 data class UserProfile(
     val firstName: String = "",
     val lastName: String = "",
@@ -46,31 +41,25 @@ sealed class ProfileUiState {
 fun ProfileScreen(modifier: Modifier = Modifier, userEmail: String) {
     var profileUiState by remember { mutableStateOf<ProfileUiState>(ProfileUiState.Loading) }
 
-    // This effect runs once to fetch the user's data from Firebase
+    // Logic to fetch user data
     LaunchedEffect(key1 = userEmail) {
         if (userEmail.isBlank()) {
             profileUiState = ProfileUiState.Error("User email not provided.")
             return@LaunchedEffect
         }
-        
-        val database = FirebaseDatabase.getInstance()
-        val userKey = userEmail.replace(".", "_")
-        val userRef = database.getReference("users").child(userKey)
 
-        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val user = snapshot.getValue(UserProfile::class.java)
-                profileUiState = if (user != null) {
-                    ProfileUiState.Success(user)
-                } else {
-                    ProfileUiState.Error("User data not found for email: $userEmail")
-                }
-            }
+        // Firebase database references removed.
+        // In the future, this is where you will call your SQL API via Retrofit.
 
-            override fun onCancelled(error: DatabaseError) {
-                profileUiState = ProfileUiState.Error(error.message)
-            }
-        })
+        // Placeholder: Setting a mock state for now
+        profileUiState = ProfileUiState.Success(
+            UserProfile(
+                firstName = "User",
+                lastName = "Profile",
+                collegeMail = userEmail,
+                phone = "0000000000"
+            )
+        )
     }
 
     Scaffold(
@@ -142,21 +131,24 @@ fun ProfileContent(user: UserProfile) {
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 ProfileInfoRow(icon = Icons.Default.Person, label = "Full Name", value = "${user.firstName} ${user.lastName}")
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 ProfileInfoRow(icon = Icons.Default.Email, label = "College Email", value = user.collegeMail)
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 ProfileInfoRow(icon = Icons.Default.Phone, label = "Phone Number", value = user.phone)
             }
         }
         Spacer(modifier = Modifier.weight(1f)) // Pushes the button to the bottom
 
-        // --- UPDATED LOGOUT BUTTON ---
+        // LOGOUT BUTTON
         Button(
             onClick = {
-                // 1. Sign out from Firebase Authentication to end the session
-                FirebaseAuth.getInstance().signOut()
-                
-                // 2. Navigate back to the login screen and clear all previous screens
+                // Firebase Sign out removed.
+
+                // Clear the shared preference session locally
+                val sharedPref = context.getSharedPreferences("UserSession", androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE)
+                sharedPref.edit().clear().apply()
+
+                // Navigate back to the login screen and clear activity stack
                 val intent = Intent(context, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
@@ -187,4 +179,3 @@ fun ProfileInfoRow(icon: ImageVector, label: String, value: String) {
         }
     }
 }
-

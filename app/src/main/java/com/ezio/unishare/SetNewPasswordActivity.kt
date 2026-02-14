@@ -1,4 +1,3 @@
-
 package com.ezio.unishare
 
 import android.content.Intent
@@ -11,7 +10,6 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.textfield.TextInputLayout
-import com.google.firebase.database.FirebaseDatabase
 
 class SetNewPasswordActivity : AppCompatActivity() {
 
@@ -41,7 +39,7 @@ class SetNewPasswordActivity : AppCompatActivity() {
 
         val shakeAnimation = AnimationUtils.loadAnimation(this, R.anim.shake_anim)
 
-        // ✅ Get verified email from ForgetActivity
+        // Get verified email from ForgetActivity
         val userEmail = intent.getStringExtra("EXTRA_EMAIL")
 
         buttonSetNewPassword.setOnClickListener {
@@ -82,43 +80,20 @@ class SetNewPasswordActivity : AppCompatActivity() {
                 }
 
                 it.isEnabled = false
-                Toast.makeText(this, "Updating password...", Toast.LENGTH_SHORT).show()
 
+                // Logic for Realtime Database update has been removed.
+                // In the future, this is where you will send a POST request to your SQL API.
+                Log.d("PasswordReset", "Local validation successful for $userEmail")
 
-// ✅ Only update in Realtime Database
-                updatePasswordInRealtimeDatabase(userEmail, newPassword) { dbSuccess ->
-                    if (dbSuccess) {
-                        Toast.makeText(this, "Password updated successfully! Please log in with your new password.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Local validation successful! Redirecting to login...", Toast.LENGTH_LONG).show()
 
-                        // Navigate back to login screen
-                        val intent = Intent(this, MainActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        }
-                        startActivity(intent)
-                        finish()
-                    } else {
-                        Toast.makeText(this, "Failed to update password. Please try again.", Toast.LENGTH_LONG).show()
-                        it.isEnabled = true
-                    }
+                // Navigate back to login screen
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
+                startActivity(intent)
+                finish()
             }
         }
-    }
-
-    private fun updatePasswordInRealtimeDatabase(email: String, newPass: String, onComplete: (Boolean) -> Unit) {
-        val database = FirebaseDatabase.getInstance()
-        val userKey = email.replace(".", "_") // ✅ Ensure key format
-        val userPasswordRef = database.getReference("users").child(userKey).child("password")
-
-        userPasswordRef.setValue(newPass)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("DB_UPDATE", "Realtime Database password updated.")
-                    onComplete(true)
-                } else {
-                    Log.e("DB_UPDATE", "Failed to update Realtime Database password.", task.exception)
-                    onComplete(false)
-                }
-            }
     }
 }

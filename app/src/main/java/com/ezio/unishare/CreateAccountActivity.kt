@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Patterns
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Button
@@ -13,13 +12,10 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.textfield.TextInputLayout
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 import android.util.Log
 
 class CreateAccountActivity : AppCompatActivity() {
 
-    private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var textViewPasswordCriteriaErrorsCreate: TextView
 
     // Password strength criteria
@@ -32,8 +28,6 @@ class CreateAccountActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_account)
-
-        firebaseAuth = FirebaseAuth.getInstance()
 
         // --- Find Views ---
         val firstNameLayout = findViewById<TextInputLayout>(R.id.textInputLayoutFirstName)
@@ -52,9 +46,8 @@ class CreateAccountActivity : AppCompatActivity() {
         val createAccountButton = findViewById<Button>(R.id.buttonCreateAccountSubmit)
 
         textViewPasswordCriteriaErrorsCreate = findViewById(R.id.textViewPasswordCriteriaErrorsCreate)
-        val shake = AnimationUtils.loadAnimation(this, R.anim.shake_anim)
 
-        // --- Add Text Watchers to clear errors (your existing code is good) ---
+        // --- Text Watchers to clear errors ---
         fun addTextWatcherToClearError(editText: EditText, layout: TextInputLayout) {
             editText.addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -89,68 +82,31 @@ class CreateAccountActivity : AppCompatActivity() {
             val password = passwordEditText.text.toString()
             val confirmPassword = confirmPasswordEditText.text.toString()
 
-            // Assume your existing validation logic runs here and sets a variable 'isValid'
-            var isValid = true 
-            // ... your validation ...
+            var isValid = true
+
+            // Basic validation check
             if (password != confirmPassword) {
                 isValid = false
-                // ... show error
+                confirmPasswordLayout.error = "Passwords do not match"
             }
 
-
             if (isValid) {
+                // Button is disabled to prevent multiple clicks
                 it.isEnabled = false
-                Toast.makeText(this, "Creating Account...", Toast.LENGTH_SHORT).show()
 
-                // --- NEW AUTHENTICATION AND DATABASE LOGIC ---
-                firebaseAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this) { task ->
-                        if (task.isSuccessful) {
-                            Log.d("AUTH", "Firebase Auth user created successfully.")
-                            // Now save the user's profile information to the Realtime Database
-                            saveUserDetailsToDatabase(firstName, lastName, email, phone)
+                // Logic for account creation is removed.
+                // Redirecting to Login Screen as a placeholder.
+                Toast.makeText(this, "Account data validated locally.", Toast.LENGTH_SHORT).show()
 
-                            // Send them to the login screen to sign in for the first time
-                            Toast.makeText(this, "Account created! Please log in.", Toast.LENGTH_LONG).show()
-                            val intent = Intent(this, MainActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            }
-                            startActivity(intent)
-                            finish()
-
-                        } else {
-                            // If user creation fails, show an error and re-enable the button
-                            Log.w("AUTH", "createUserWithEmail:failure", task.exception)
-                            Toast.makeText(baseContext, "Account creation failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                            it.isEnabled = true
-                        }
-                    }
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                startActivity(intent)
+                finish()
             } else {
                 Toast.makeText(this, "Please correct the errors.", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    private fun saveUserDetailsToDatabase(firstName: String, lastName: String, email: String, phone: String) {
-        val database = FirebaseDatabase.getInstance()
-        val usersRef = database.getReference("users")
-        val key = email.replace(".", "_")
-
-        // Create a map of user data. NOTICE: NO PASSWORD IS SAVED.
-        val userData = mapOf(
-            "firstName" to firstName,
-            "lastName" to lastName,
-            "collegeMail" to email, // Matching your database structure
-            "phone" to phone
-        )
-
-        usersRef.child(key).setValue(userData)
-            .addOnSuccessListener {
-                Log.d("DB_SAVE", "User profile saved to Realtime Database.")
-            }
-            .addOnFailureListener { e ->
-                Log.e("DB_SAVE", "Failed to save user profile.", e)
-            }
     }
 
     override fun finish() {
@@ -158,4 +114,3 @@ class CreateAccountActivity : AppCompatActivity() {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 }
-
