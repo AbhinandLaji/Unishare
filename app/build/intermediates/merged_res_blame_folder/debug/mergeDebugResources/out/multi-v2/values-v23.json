@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.ezio.unishare.app-mergeDebugResources-60:/values-v23/values-v23.xml",
+            "outputFile": "com.ezio.unishare.app-mergeDebugResources-70:/values-v23/values-v23.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\abhin\\.gradle\\caches\\9.0-milestone-1\\transforms\\019e5ea6441e1457650e8c2c6b924ca3\\transformed\\appcompat-1.6.1\\res\\values-v23\\values-v23.xml",
+                    "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/3462092adaccb7180ef3860df660c0cb/transformed/appcompat-1.6.1/res/values-v23/values-v23.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,20,34,35,36,39,43,44,45,46",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -15,7 +15,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\abhin\\.gradle\\caches\\9.0-milestone-1\\transforms\\de8af56191dc955198471fe8a02a7824\\transformed\\material-1.11.0\\res\\values-v23\\values-v23.xml",
+                    "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/d74345636925376e4113a0bd3dc68718/transformed/material-1.11.0/res/values-v23/values-v23.xml",
                     "from": {
                         "startLines": "2,5,9,13,16,19,22,25,28,32",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4",
@@ -34,7 +34,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\abhin\\.gradle\\caches\\9.0-milestone-1\\transforms\\81db5cba38eb8e7551df376cbac6b911\\transformed\\cardview-1.0.0\\res\\values-v23\\values-v23.xml",
+                    "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/ac33c9385b4572cdc3197ed87981fa9e/transformed/cardview-1.0.0/res/values-v23/values-v23.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

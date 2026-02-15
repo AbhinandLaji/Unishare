@@ -12,18 +12,19 @@ import androidx.appcompat.app.AppCompatActivity
 
 class SplashActivity : AppCompatActivity() {
 
-    private val splashTimeOut: Long = 2000 // 2 seconds
+    private val splashTimeOut: Long = 3000 // 3 seconds (you can adjust this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_splash)
 
-        // Make activity full-screen
+        // Make sure you have a layout file named activity_splash.xml in res/layout/
+        setContentView(R.layout.activity_splash) // MOVED THIS LINE UP
+
+        // Make activity full-screen -- MOVED THIS ENTIRE BLOCK AFTER setContentView
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.insetsController?.let {
                 it.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                it.systemBarsBehavior =
-                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             }
         } else {
             @Suppress("DEPRECATION")
@@ -34,25 +35,12 @@ class SplashActivity : AppCompatActivity() {
         }
 
         Handler(Looper.getMainLooper()).postDelayed({
-            // --- Session Check using SharedPreferences ---
-            val sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE)
-            val isLoggedIn = sharedPref.getBoolean("isLoggedIn", false)
-            val userEmail = sharedPref.getString("userEmail", null)
-
-            if (isLoggedIn && userEmail != null) {
-                // User already logged in → Go to HomeActivity
-                val intent = Intent(this@SplashActivity, HomeActivity::class.java).apply {
-                    putExtra("USER_EMAIL", userEmail)
-                }
-                startActivity(intent)
-            } else {
-                // User not logged in → Go to Login
-                val intent = Intent(this@SplashActivity, MainActivity::class.java)
-                startActivity(intent)
-            }
-
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-            finish() // remove splash from back stack
+            // Ensure MainActivity.kt exists in com.ezio.unishare package
+            // or update the target class accordingly.
+            val intent = Intent(this@SplashActivity, MainActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out) // <--- ADDED THIS LINE
+            finish() // Call finish to remove SplashActivity from the back stack
         }, splashTimeOut)
     }
 }

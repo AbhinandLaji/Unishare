@@ -1,10 +1,20 @@
 {
     "logs": [
         {
-            "outputFile": "com.ezio.unishare.app-mergeDebugResources-60:/values-v16/values-v16.xml",
+            "outputFile": "com.ezio.unishare.app-mergeDebugResources-70:/values-v16/values-v16.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\abhin\\.gradle\\caches\\9.0-milestone-1\\transforms\\019e5ea6441e1457650e8c2c6b924ca3\\transformed\\appcompat-1.6.1\\res\\values-v16\\values-v16.xml",
+                    "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/3e1da29f646810cfb05e4f909b4bf7d3/transformed/core-1.12.0/res/values-v16/values-v16.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "65",
+                        "endOffsets": "116"
+                    }
+                },
+                {
+                    "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/3462092adaccb7180ef3860df660c0cb/transformed/appcompat-1.6.1/res/values-v16/values-v16.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
@@ -20,16 +30,6 @@
                         "endLines": "6",
                         "endColumns": "12",
                         "endOffsets": "289"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\abhin\\.gradle\\caches\\9.0-milestone-1\\transforms\\a39b81664dbe31929e98f8ed87e09772\\transformed\\core-1.12.0\\res\\values-v16\\values-v16.xml",
-                    "from": {
-                        "startLines": "2",
-                        "startColumns": "4",
-                        "startOffsets": "55",
-                        "endColumns": "65",
-                        "endOffsets": "116"
                     }
                 }
             ]

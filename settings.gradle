@@ -1,6 +1,6 @@
 pluginManagement {
     repositories {
-        google() // 👈 Firebase needs this
+        google()
         mavenCentral()
         gradlePluginPortal()
     }
@@ -8,10 +8,11 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
+        google() // Essential for standard Android libraries
+        mavenCentral() // Essential for Retrofit and GSON
+        maven { url 'https://jitpack.io' } // Useful for other 3rd party libraries
     }
 }
+
 rootProject.name = "PeerRentApp"
 include ':app'

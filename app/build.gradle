@@ -1,7 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    id 'org.jetbrains.kotlin.plugin.compose'
+    id 'org.jetbrains.kotlin.plugin.compose' // Required for Kotlin 2.2.0
 }
 
 android {
@@ -14,18 +14,11 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary true
-        }
     }
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
+    buildFeatures {
+        compose true
     }
 
     compileOptions {
@@ -36,53 +29,33 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-
-    buildFeatures {
-        compose true
-    }
-
-    packagingOptions {
-        resources {
-            excludes.add("/META-INF/{AL2.0,LGPL2.1}")
-            excludes.add("META-INF/NOTICE.md")
-            excludes.add("META-INF/LICENSE.md")
-        }
-    }
 }
 
 dependencies {
-    // Standard Android Libraries
+    // --- 1. NEW: Retrofit for your Fedora Backend ---
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+
+    // --- 2. TEMPORARY: Firebase (To fix "unresolved reference" errors) ---
+    implementation platform('com.google.firebase:firebase-bom:33.1.2')
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.firebase:firebase-database-ktx'
+    implementation 'com.google.firebase:firebase-storage-ktx'
+
+    // --- 3. MISSING: Navigation & Coil (Seen in your error logs) ---
+    implementation 'androidx.navigation:navigation-compose:2.7.7'
+    implementation 'io.coil-kt:coil-compose:2.6.0'
+
+    // --- 4. Standard UI & Compose Libraries ---
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
-
-    // Email system
-    implementation 'com.sun.mail:android-mail:1.6.7'
-    implementation 'com.sun.mail:android-activation:1.6.7'
-
-
-    // Jetpack Compose Bill of Materials (BOM)
     def composeBom = platform('androidx.compose:compose-bom:2024.02.01')
     implementation composeBom
-    androidTestImplementation composeBom
-
-    // Core Compose libraries
-    implementation 'androidx.activity:activity-compose'
     implementation 'androidx.compose.ui:ui'
-    implementation 'androidx.compose.ui:ui-graphics'
-    implementation 'androidx.compose.ui:ui-tooling-preview'
     implementation 'androidx.compose.material3:material3'
-
-    // --- THIS IS THE NEW LINE ---
-    // This library includes all Material icons, including the "automirrored" ones
+    implementation 'androidx.activity:activity-compose'
     implementation 'androidx.compose.material:material-icons-extended'
-    // ----------------------------
-
-    // Compose Navigation
-    implementation 'androidx.navigation:navigation-compose:2.7.7'
-
-    // Coil for image loading
-    implementation 'io.coil-kt:coil-compose:2.6.0'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
 }
-

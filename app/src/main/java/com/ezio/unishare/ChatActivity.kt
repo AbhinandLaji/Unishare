@@ -31,12 +31,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 
 import com.ezio.unishare.ui.theme.PeerRentTheme
+import com.google.firebase.database.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-// --- DATA MODELS ---
+// Data class for a user
 data class ChatUser(val email: String = "", val firstName: String = "", val lastName: String = "")
 
+// Data class for a message
 data class ChatMessage(
     val text: String = "",
     val senderEmail: String = "",
@@ -44,6 +46,8 @@ data class ChatMessage(
 )
 
 class ChatActivity : ComponentActivity() {
+
+    private val database = FirebaseDatabase.getInstance()
     private lateinit var currentUserEmail: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,6 +58,7 @@ class ChatActivity : ComponentActivity() {
             PeerRentTheme {
                 ChatApp(
                     currentUserEmail = currentUserEmail,
+                    database = database,
                     onFinishActivity = { finish() }
                 )
             }
@@ -62,7 +67,7 @@ class ChatActivity : ComponentActivity() {
 }
 
 @Composable
-fun ChatApp(currentUserEmail: String, onFinishActivity: () -> Unit) {
+fun ChatApp(currentUserEmail: String, database: FirebaseDatabase, onFinishActivity: () -> Unit) {
     var selectedUser by remember { mutableStateOf<ChatUser?>(null) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -72,6 +77,7 @@ fun ChatApp(currentUserEmail: String, onFinishActivity: () -> Unit) {
             exit = fadeOut()
         ) {
             UserSearchScreen(
+                database = database,
                 currentUserEmail = currentUserEmail,
                 onUserSelected = { user -> selectedUser = user },
                 onBack = onFinishActivity
@@ -87,6 +93,7 @@ fun ChatApp(currentUserEmail: String, onFinishActivity: () -> Unit) {
                 ChatScreen(
                     currentUserEmail = currentUserEmail,
                     recipient = user,
+                    database = database,
                     onBack = { selectedUser = null }
                 )
             }
@@ -97,27 +104,41 @@ fun ChatApp(currentUserEmail: String, onFinishActivity: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserSearchScreen(
+    database: FirebaseDatabase,
     currentUserEmail: String,
     onUserSelected: (ChatUser) -> Unit,
     onBack: () -> Unit
 ) {
     var searchText by remember { mutableStateOf("") }
-    // Temporary mock data until SQL API is ready
     var userList by remember { mutableStateOf<List<ChatUser>>(emptyList()) }
 
     LaunchedEffect(Unit) {
-        // TODO: Replace this with your Retrofit API call to fetch users from SQL
-        // Example: userList = MyApiService.getUsers()
-        userList = listOf(
-            ChatUser("test@tkm.com", "TKM", "Student"),
-            ChatUser("ezio@unishare.com", "Ezio", "Audit")
-        )
+        val usersRef = database.getReference("users")
+        usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val users = snapshot.children.mapNotNull {
+                    // Manually map fields to handle inconsistencies like "collegeMail" vs "email"
+                    val data = it.value as? Map<*, *>
+                    if (data != null) {
+                        ChatUser(
+                            email = data["collegeMail"] as? String ?: "",
+                            firstName = data["firstName"] as? String ?: "",
+                            lastName = data["lastName"] as? String ?: ""
+                        )
+                    } else {
+                        null
+                    }
+                }
+                userList = users.filter { it.email.isNotEmpty() && it.email != currentUserEmail }
+            }
+            override fun onCancelled(error: DatabaseError) { /* Handle error */ }
+        })
     }
 
     val filteredUsers = userList.filter {
         it.firstName.contains(searchText, ignoreCase = true) ||
-                it.lastName.contains(searchText, ignoreCase = true) ||
-                it.email.contains(searchText, ignoreCase = true)
+        it.lastName.contains(searchText, ignoreCase = true) ||
+        it.email.contains(searchText, ignoreCase = true)
     }
 
     Scaffold(
@@ -196,33 +217,40 @@ fun UserListItem(user: ChatUser, onClick: () -> Unit) {
 fun ChatScreen(
     currentUserEmail: String,
     recipient: ChatUser,
+    database: FirebaseDatabase,
     onBack: () -> Unit
 ) {
     var messages by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }
     var currentMessage by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // In SQL, you'll likely use a ChatID integer, but for now we'll keep the logic consistent
     val chatID = remember {
-        listOf(currentUserEmail, recipient.email).sorted().joinToString("_")
+        listOf(currentUserEmail.replace(".", ""), recipient.email.replace(".", "")).sorted().joinToString("_")
     }
 
-    LaunchedEffect(chatID) {
-        // TODO: Replace with Retrofit call or WebSocket to fetch messages from SQL
-        // Example: messages = MyApiService.getMessages(chatID)
+    DisposableEffect(chatID) {
+        val messagesRef = database.getReference("chats").child(chatID)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                messages = snapshot.children.mapNotNull { it.getValue(ChatMessage::class.java) }
+            }
+            override fun onCancelled(error: DatabaseError) { /* Handle error */ }
+        }
+        messagesRef.addValueEventListener(listener)
+
+        onDispose {
+            messagesRef.removeEventListener(listener)
+        }
     }
 
     fun sendMessage() {
         if (currentMessage.isNotBlank()) {
-            val newMessage = ChatMessage(
+            val message = ChatMessage(
                 text = currentMessage,
                 senderEmail = currentUserEmail,
                 timestamp = System.currentTimeMillis()
             )
-            // TODO: Replace with POST request to your SQL API
-            // Example: MyApiService.postMessage(newMessage)
-
-            messages = messages + newMessage // Temporary UI update
+            database.getReference("chats").child(chatID).push().setValue(message)
             currentMessage = ""
             keyboardController?.hide()
         }
@@ -275,7 +303,7 @@ fun MessageBubble(message: ChatMessage, isCurrentUser: Boolean) {
     ) {
         Column(
             modifier = Modifier
-                .widthIn(max = 280.dp)
+                .widthIn(max = 280.dp) // Set a max width for bubbles
                 .clip(RoundedCornerShape(16.dp))
                 .background(backgroundColor)
                 .padding(12.dp),
