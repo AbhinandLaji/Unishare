@@ -1,7 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    id 'org.jetbrains.kotlin.plugin.compose' // Required for Kotlin 2.2.0
+    // Ensure this matches your Kotlin version for Compose support
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 
 android {
@@ -32,24 +33,27 @@ android {
 }
 
 dependencies {
-    // --- 1. NEW: Retrofit for your Fedora Backend ---
+    // --- 1. Networking (Fedora Backend) ---
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
-    // --- 2. TEMPORARY: Firebase (To fix "unresolved reference" errors) ---
+    // --- 2. Image Handling & Cloud ---
+    implementation 'io.coil-kt:coil-compose:2.6.0'
+    implementation 'com.cloudinary:cloudinary-android:2.3.1'
+
+    // --- 3. Firebase (Legacy Support) ---
     implementation platform('com.google.firebase:firebase-bom:33.1.2')
     implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.google.firebase:firebase-database-ktx'
     implementation 'com.google.firebase:firebase-storage-ktx'
 
-    // --- 3. MISSING: Navigation & Coil (Seen in your error logs) ---
+    // --- 4. Navigation & Core UI ---
     implementation 'androidx.navigation:navigation-compose:2.7.7'
-    implementation 'io.coil-kt:coil-compose:2.6.0'
-
-    // --- 4. Standard UI & Compose Libraries ---
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
+
+    // --- 5. Compose BOM & Libraries ---
     def composeBom = platform('androidx.compose:compose-bom:2024.02.01')
     implementation composeBom
     implementation 'androidx.compose.ui:ui'
@@ -57,5 +61,6 @@ dependencies {
     implementation 'androidx.activity:activity-compose'
     implementation 'androidx.compose.material:material-icons-extended'
     implementation 'androidx.compose.ui:ui-tooling-preview'
+
     debugImplementation 'androidx.compose.ui:ui-tooling'
 }

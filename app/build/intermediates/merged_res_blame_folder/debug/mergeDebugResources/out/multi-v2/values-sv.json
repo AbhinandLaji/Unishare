@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.ezio.unishare.app-mergeDebugResources-70:/values-sv/values-sv.xml",
+            "outputFile": "com.ezio.unishare.app-mergeDebugResources-76:/values-sv/values-sv.xml",
             "map": [
                 {
                     "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/3462092adaccb7180ef3860df660c0cb/transformed/appcompat-1.6.1/res/values-sv/values-sv.xml",

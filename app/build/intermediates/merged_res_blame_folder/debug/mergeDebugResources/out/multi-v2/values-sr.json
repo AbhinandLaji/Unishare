@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.ezio.unishare.app-mergeDebugResources-70:/values-sr/values-sr.xml",
+            "outputFile": "com.ezio.unishare.app-mergeDebugResources-76:/values-sr/values-sr.xml",
             "map": [
                 {
                     "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/efd1b8e1bf0e22b10c84c7e37f292c25/transformed/jetified-credentials-1.2.0-rc01/res/values-sr/values-sr.xml",

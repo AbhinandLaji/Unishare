@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.ezio.unishare.app-mergeDebugResources-70:/values-watch-v20/values-watch-v20.xml",
+            "outputFile": "com.ezio.unishare.app-mergeDebugResources-76:/values-watch-v20/values-watch-v20.xml",
             "map": [
                 {
                     "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/d8fbddca871ed9bcbfc8b531bd73af99/transformed/jetified-play-services-auth-20.7.0/res/values-watch-v20/values.xml",

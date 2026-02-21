@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.ezio.unishare.app-mergeDebugResources-70:/values-pt-rPT/values-pt-rPT.xml",
+            "outputFile": "com.ezio.unishare.app-mergeDebugResources-76:/values-pt-rPT/values-pt-rPT.xml",
             "map": [
                 {
                     "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/b36349887c54056da943df5c95286839/transformed/jetified-material3-release/res/values-pt-rPT/values-pt-rPT.xml",

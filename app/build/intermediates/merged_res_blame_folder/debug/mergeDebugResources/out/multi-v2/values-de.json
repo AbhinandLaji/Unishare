@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.ezio.unishare.app-mergeDebugResources-70:/values-de/values-de.xml",
+            "outputFile": "com.ezio.unishare.app-mergeDebugResources-76:/values-de/values-de.xml",
             "map": [
                 {
                     "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/55532c9948c225780aa5afa2c0995ee5/transformed/jetified-play-services-base-18.1.0/res/values-de/values.xml",

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.ezio.unishare.app-mergeDebugResources-70:/values-en-rAU/values-en-rAU.xml",
+            "outputFile": "com.ezio.unishare.app-mergeDebugResources-76:/values-en-rAU/values-en-rAU.xml",
             "map": [
                 {
                     "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/d136dd47c9db4e6497b5a5f2b4244265/transformed/browser-1.4.0/res/values-en-rAU/values-en-rAU.xml",

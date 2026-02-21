@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.ezio.unishare.app-mergeDebugResources-70:/values-my/values-my.xml",
+            "outputFile": "com.ezio.unishare.app-mergeDebugResources-76:/values-my/values-my.xml",
             "map": [
                 {
                     "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/d74345636925376e4113a0bd3dc68718/transformed/material-1.11.0/res/values-my/values-my.xml",

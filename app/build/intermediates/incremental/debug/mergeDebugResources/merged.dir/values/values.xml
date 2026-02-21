@@ -544,7 +544,11 @@
     </attr>
     <bool name="abc_action_bar_embed_tabs">true</bool>
     <bool name="abc_config_actionMenuItemAllCaps">true</bool>
+    <bool name="enable_system_alarm_service_default">true</bool>
+    <bool name="enable_system_foreground_service_default">true</bool>
+    <bool name="enable_system_job_service_default">false</bool>
     <bool name="mtrl_btn_textappearance_all_caps">true</bool>
+    <bool name="workmanager_test_configuration">false</bool>
     <color name="abc_decor_view_status_guard">#ff000000</color>
     <color name="abc_decor_view_status_guard_light">#ffffffff</color>
     <color name="abc_search_url_text_normal">#7fa87f</color>
@@ -569,6 +573,7 @@
     <color name="browser_actions_divider_color">#1E000000</color>
     <color name="browser_actions_text_color">#DE000000</color>
     <color name="browser_actions_title_color">#646464</color>
+    <color name="buttonColor">#0078ff</color>
     <color name="button_material_dark">#ff5a595b</color>
     <color name="button_material_light">#ffd6d7d7</color>
     <color name="call_notification_answer_color">#1d873b</color>
@@ -577,6 +582,8 @@
     <color name="cardview_light_background">#FFFFFFFF</color>
     <color name="cardview_shadow_end_color">#03000000</color>
     <color name="cardview_shadow_start_color">#37000000</color>
+    <color name="colorPrimary">#2460af</color>
+    <color name="colorPrimaryDark">#0e2f5a</color>
     <color name="common_google_signin_btn_text_dark_default">@android:color/white</color>
     <color name="common_google_signin_btn_text_dark_disabled">#1F000000</color>
     <color name="common_google_signin_btn_text_dark_focused">@android:color/black</color>
@@ -874,6 +881,7 @@
     <color name="mtrl_textinput_hovered_box_stroke_color">#DE000000</color>
     <color name="notification_action_color_filter">#ffffffff</color>
     <color name="notification_icon_bg_color">#ff9e9e9e</color>
+    <color name="notification_material_background_media_default_color">#ff424242</color>
     <color name="primary_dark_material_dark">@android:color/black</color>
     <color name="primary_dark_material_light">@color/material_grey_600</color>
     <color name="primary_material_dark">@color/material_grey_900</color>
@@ -888,6 +896,7 @@
     <color name="secondary_text_default_material_light">#8a000000</color>
     <color name="secondary_text_disabled_material_dark">#36ffffff</color>
     <color name="secondary_text_disabled_material_light">#24000000</color>
+    <color name="selectedThumbnailBorderColor">#0078ff</color>
     <color name="switch_thumb_disabled_material_dark">#ff616161</color>
     <color name="switch_thumb_disabled_material_light">#ffbdbdbd</color>
     <color name="switch_thumb_normal_material_dark">#ffbdbdbd</color>
@@ -979,6 +988,8 @@
     <dimen name="appcompat_dialog_background_inset">16dp</dimen>
     <dimen name="browser_actions_context_menu_max_width">500dp</dimen>
     <dimen name="browser_actions_context_menu_min_padding">20dp</dimen>
+    <dimen name="button_padding">10dp</dimen>
+    <dimen name="cancel_button_left_margin">10dp</dimen>
     <dimen name="cardview_compat_inset_shadow">1dp</dimen>
     <dimen name="cardview_default_elevation">2dp</dimen>
     <dimen name="cardview_default_radius">2dp</dimen>
@@ -1041,6 +1052,7 @@
     <dimen name="design_textinput_caption_translate_y">5dp</dimen>
     <item format="float" name="disabled_alpha_material_dark" type="dimen">0.30</item>
     <item format="float" name="disabled_alpha_material_light" type="dimen">0.26</item>
+    <dimen name="done_button_right_margin">10dp</dimen>
     <dimen name="fastscroll_default_thickness">8dp</dimen>
     <dimen name="fastscroll_margin">0dp</dimen>
     <dimen name="fastscroll_minimum_range">50dp</dimen>
@@ -1051,6 +1063,9 @@
     <item format="float" name="hint_alpha_material_light" type="dimen">0.38</item>
     <item format="float" name="hint_pressed_alpha_material_dark" type="dimen">0.70</item>
     <item format="float" name="hint_pressed_alpha_material_light" type="dimen">0.54</item>
+    <dimen name="images_pager_margin_top">5dp</dimen>
+    <dimen name="imageview_bottom_margin">10dp</dimen>
+    <dimen name="imageview_top_margin">10dp</dimen>
     <dimen name="item_touch_helper_max_drag_scroll_per_frame">20dp</dimen>
     <dimen name="item_touch_helper_swipe_escape_max_velocity">800dp</dimen>
     <dimen name="item_touch_helper_swipe_escape_velocity">120dp</dimen>
@@ -1473,6 +1488,7 @@
     <dimen name="material_textinput_min_width">56dp</dimen>
     <dimen name="material_time_picker_minimum_screen_height">560dp</dimen>
     <dimen name="material_time_picker_minimum_screen_width">340dp</dimen>
+    <dimen name="menu_item_icon_padding">12dp</dimen>
     <dimen name="mtrl_alert_dialog_background_inset_bottom">80dp</dimen>
     <dimen name="mtrl_alert_dialog_background_inset_end">24dp</dimen>
     <dimen name="mtrl_alert_dialog_background_inset_start">24dp</dimen>
@@ -1685,6 +1701,17 @@
     <dimen name="notification_subtext_size">13sp</dimen>
     <dimen name="notification_top_pad">10dp</dimen>
     <dimen name="notification_top_pad_large_text">5dp</dimen>
+    <dimen name="subtitle_corner_radius">2dp</dimen>
+    <dimen name="subtitle_outline_width">2dp</dimen>
+    <dimen name="subtitle_shadow_offset">2dp</dimen>
+    <dimen name="subtitle_shadow_radius">2dp</dimen>
+    <dimen name="thumbnail_border_width">2dp</dimen>
+    <dimen name="thumbnail_horizontal_margin">1dp</dimen>
+    <dimen name="thumbnail_media_type_icon_bottom_margin">3dp</dimen>
+    <dimen name="thumbnail_media_type_icon_left_margin">3dp</dimen>
+    <dimen name="thumbnail_media_type_icon_size">24dp</dimen>
+    <dimen name="thumbnail_size">80dp</dimen>
+    <dimen name="thumbnails_list_vertical_margin">5dp</dimen>
     <dimen name="tooltip_corner_radius">2dp</dimen>
     <dimen name="tooltip_horizontal_padding">16dp</dimen>
     <dimen name="tooltip_margin">8dp</dimen>
@@ -1693,6 +1720,8 @@
     <dimen name="tooltip_vertical_padding">6.5dp</dimen>
     <dimen name="tooltip_y_offset_non_touch">0dp</dimen>
     <dimen name="tooltip_y_offset_touch">16dp</dimen>
+    <dimen name="upload_fab_margin">16dp</dimen>
+    <dimen name="video_play_button_overlay_size">100dp</dimen>
     <item name="material_ic_keyboard_arrow_next_black_24dp" type="drawable">@drawable/material_ic_keyboard_arrow_right_black_24dp</item>
     <item name="material_ic_keyboard_arrow_previous_black_24dp" type="drawable">@drawable/material_ic_keyboard_arrow_left_black_24dp</item>
     <drawable name="notification_template_icon_bg">#3333B5E5</drawable>
@@ -1932,6 +1961,7 @@
     <string name="call_notification_incoming_text">Incoming call</string>
     <string name="call_notification_ongoing_text">Ongoing call</string>
     <string name="call_notification_screening_text">Screening an incoming call</string>
+    <string name="cancel">Cancel</string>
     <string name="character_counter_content_description">Characters entered %1$d of %2$d</string>
     <string name="character_counter_overflowed_content_description">Character limit exceeded %1$d of %2$d</string>
     <string name="character_counter_pattern" translatable="false">%1$d/%2$d</string>
@@ -1959,6 +1989,7 @@
     <string name="copy_toast_msg">Link copied to clipboard</string>
     <string name="default_error_message">"Invalid input"</string>
     <string name="default_popup_window_title" ns1:ignore="ExtraTranslation">"Pop-Up Window"</string>
+    <string name="done">Done</string>
     <string name="dropdown_menu">"Dropdown menu"</string>
     <string description="Screen reader announcement for when a checkbox is on error. [CHAR LIMIT=NONE]" name="error_a11y_label">
     Error: invalid
@@ -2073,6 +2104,9 @@
     <string description="Suffix for time in 12-hour standard, after noon. [CHAR_LIMIT=2]" name="material_timepicker_pm">PM</string>
     <string description="Title for the dialog with a time picker. [CHAR_LIMIT=32]" name="material_timepicker_select_time">Select time</string>
     <string name="material_timepicker_text_input_mode_description">Switch to text input mode for the time input.</string>
+    <string name="menu_item_aspect_ratio_locked">Aspect ratio locked</string>
+    <string name="menu_item_aspect_ratio_unlocked">Aspect ratio unlocked</string>
+    <string name="menu_item_crop">Crop \u0026 Rotate</string>
     <string description="Content description for new notification (no number count) [CHAR_LIMIT=NONE]" name="mtrl_badge_numberless_content_description">New notification</string>
     <string name="mtrl_checkbox_button_icon_path_checked" translatable="false">M14,18.2 11.4,15.6 10,17 14,21 22,13 20.6,11.6z</string>
     <string name="mtrl_checkbox_button_icon_path_group_name" translatable="false">icon</string>
@@ -6102,12 +6136,17 @@
         <item name="android:textSize">12sp</item>
         <item name="android:textColor">?android:attr/textColorSecondary</item>
     </style>
+    <style name="TextAppearance.Compat.Notification.Info.Media"/>
     <style name="TextAppearance.Compat.Notification.Line2" parent="TextAppearance.Compat.Notification.Info"/>
+    <style name="TextAppearance.Compat.Notification.Line2.Media" parent="TextAppearance.Compat.Notification.Info.Media"/>
+    <style name="TextAppearance.Compat.Notification.Media"/>
     <style name="TextAppearance.Compat.Notification.Time">
         <item name="android:textSize">12sp</item>
         <item name="android:textColor">?android:attr/textColorSecondary</item>
     </style>
+    <style name="TextAppearance.Compat.Notification.Time.Media"/>
     <style name="TextAppearance.Compat.Notification.Title" parent="@android:style/TextAppearance.StatusBar.EventContent.Title"/>
+    <style name="TextAppearance.Compat.Notification.Title.Media"/>
     <style name="TextAppearance.Design.CollapsingToolbar.Expanded" parent="TextAppearance.AppCompat.Display1">
     <item name="android:textColor">?android:attr/textColorPrimary</item>
   </style>
@@ -7156,6 +7195,12 @@
     <item name="colorControlNormal">@color/material_on_surface_emphasis_medium</item>
     <item name="actionMenuTextColor">@color/material_on_surface_emphasis_medium</item>
   </style>
+    <style name="UploadWidgetTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="colorControlNormal">@android:color/white</item>
+    </style>
     <style name="Widget.AppCompat.ActionBar" parent="Base.Widget.AppCompat.ActionBar">
     </style>
     <style name="Widget.AppCompat.ActionBar.Solid" parent="Base.Widget.AppCompat.ActionBar.Solid">
@@ -10869,6 +10914,140 @@
         <attr name="android:name"/>
         <attr name="android:tag"/>
     </declare-styleable>
+    <declare-styleable name="GenericDraweeHierarchy">
+
+    
+    <eat-comment/>
+
+    
+    <attr format="integer" name="fadeDuration"/>
+
+    
+    <attr format="float" name="viewAspectRatio"/>
+
+    
+
+    
+    <attr format="reference" name="placeholderImage"/>
+    
+    <attr name="placeholderImageScaleType">
+      <enum name="none" value="-1"/>
+      <enum name="fitXY" value="0"/>
+      <enum name="fitStart" value="1"/>
+      <enum name="fitCenter" value="2"/>
+      <enum name="fitEnd" value="3"/>
+      <enum name="center" value="4"/>
+      <enum name="centerInside" value="5"/>
+      <enum name="centerCrop" value="6"/>
+      <enum name="focusCrop" value="7"/>
+      <enum name="fitBottomStart" value="8"/>
+    </attr>
+
+    
+    <attr format="reference" name="retryImage"/>
+    
+    <attr name="retryImageScaleType">
+      <enum name="none" value="-1"/>
+      <enum name="fitXY" value="0"/>
+      <enum name="fitStart" value="1"/>
+      <enum name="fitCenter" value="2"/>
+      <enum name="fitEnd" value="3"/>
+      <enum name="center" value="4"/>
+      <enum name="centerInside" value="5"/>
+      <enum name="centerCrop" value="6"/>
+      <enum name="focusCrop" value="7"/>
+      <enum name="fitBottomStart" value="8"/>
+    </attr>
+
+    
+    <attr format="reference" name="failureImage"/>
+    
+    <attr name="failureImageScaleType">
+      <enum name="none" value="-1"/>
+      <enum name="fitXY" value="0"/>
+      <enum name="fitStart" value="1"/>
+      <enum name="fitCenter" value="2"/>
+      <enum name="fitEnd" value="3"/>
+      <enum name="center" value="4"/>
+      <enum name="centerInside" value="5"/>
+      <enum name="centerCrop" value="6"/>
+      <enum name="focusCrop" value="7"/>
+      <enum name="fitBottomStart" value="8"/>
+    </attr>
+
+    
+    <attr format="reference" name="progressBarImage"/>
+    
+    <attr name="progressBarImageScaleType">
+      <enum name="none" value="-1"/>
+      <enum name="fitXY" value="0"/>
+      <enum name="fitStart" value="1"/>
+      <enum name="fitCenter" value="2"/>
+      <enum name="fitEnd" value="3"/>
+      <enum name="center" value="4"/>
+      <enum name="centerInside" value="5"/>
+      <enum name="centerCrop" value="6"/>
+      <enum name="focusCrop" value="7"/>
+      <enum name="fitBottomStart" value="8"/>
+    </attr>
+    
+    <attr format="integer" name="progressBarAutoRotateInterval"/>
+
+    
+    <attr name="actualImageScaleType">
+      <enum name="none" value="-1"/>
+      <enum name="fitXY" value="0"/>
+      <enum name="fitStart" value="1"/>
+      <enum name="fitCenter" value="2"/>
+      <enum name="fitEnd" value="3"/>
+      <enum name="center" value="4"/>
+      <enum name="centerInside" value="5"/>
+      <enum name="centerCrop" value="6"/>
+      <enum name="focusCrop" value="7"/>
+      <enum name="fitBottomStart" value="8"/>
+    </attr>
+
+    
+    <attr format="reference" name="backgroundImage"/>
+
+    
+    <attr format="reference" name="overlayImage"/>
+
+    
+    <attr format="reference" name="pressedStateOverlayImage"/>
+
+    
+
+    
+    <attr format="boolean" name="roundAsCircle"/>
+    
+    <attr format="dimension" name="roundedCornerRadius"/>
+    
+    <attr format="boolean" name="roundTopLeft"/>
+    
+    <attr format="boolean" name="roundTopRight"/>
+    
+    <attr format="boolean" name="roundBottomRight"/>
+    
+    <attr format="boolean" name="roundBottomLeft"/>
+    
+    <attr format="boolean" name="roundTopStart"/>
+    
+    <attr format="boolean" name="roundTopEnd"/>
+    
+    <attr format="boolean" name="roundBottomStart"/>
+    
+    <attr format="boolean" name="roundBottomEnd"/>
+    
+    <attr format="color" name="roundWithOverlayColor"/>
+    
+    <attr format="dimension" name="roundingBorderWidth"/>
+    
+    <attr format="color|reference" name="roundingBorderColor"/>
+    
+    <attr format="dimension" name="roundingBorderPadding"/>
+
+  </declare-styleable>
     <declare-styleable name="GradientColor">
         
         <attr name="android:startColor"/>
@@ -11922,6 +12101,89 @@
 
 <attr format="reference|string" name="scopeUris"/>
 </declare-styleable>
+    <declare-styleable name="SimpleDraweeView" parent="GenericDraweeHierarchy">
+
+    
+    <attr format="string" name="actualImageUri"/>
+    
+    <attr format="reference" name="actualImageResource"/>
+
+    
+    <eat-comment/>
+
+    
+    <attr name="fadeDuration"/>
+
+    
+    <attr name="viewAspectRatio"/>
+
+    
+
+    
+    <attr name="placeholderImage"/>
+    
+    <attr name="placeholderImageScaleType"/>
+
+    
+    <attr name="retryImage"/>
+    
+    <attr name="retryImageScaleType"/>
+
+    
+    <attr name="failureImage"/>
+    
+    <attr name="failureImageScaleType"/>
+
+
+    
+    <attr name="progressBarImage"/>
+    
+    <attr name="progressBarImageScaleType"/>
+
+    
+    <attr name="progressBarAutoRotateInterval"/>
+
+    
+    <attr name="backgroundImage"/>
+
+    
+    <attr name="overlayImage"/>
+
+    
+    <attr name="pressedStateOverlayImage"/>
+
+    
+
+    
+    <attr name="roundAsCircle"/>
+    
+    <attr name="roundedCornerRadius"/>
+    
+    <attr name="roundTopLeft"/>
+    
+    <attr name="roundTopRight"/>
+    
+    <attr name="roundBottomRight"/>
+    
+    <attr name="roundBottomLeft"/>
+    
+    <attr name="roundTopStart"/>
+    
+    <attr name="roundTopEnd"/>
+    
+    <attr name="roundBottomStart"/>
+    
+    <attr name="roundBottomEnd"/>
+    
+    <attr name="roundWithOverlayColor"/>
+    
+    <attr name="roundingBorderWidth"/>
+    
+    <attr name="roundingBorderColor"/>
+    
+    <attr name="roundingBorderPadding"/>
+
+  </declare-styleable>
     <declare-styleable name="Slider">
     <attr name="android:value"/>
     <attr name="android:valueFrom"/>

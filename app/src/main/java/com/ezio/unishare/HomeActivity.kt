@@ -1,9 +1,13 @@
 package com.ezio.unishare
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -36,34 +40,33 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import coil.compose.AsyncImage
+import com.cloudinary.android.MediaManager
+import com.cloudinary.android.callback.ErrorInfo
+import com.cloudinary.android.callback.UploadCallback
 import com.ezio.unishare.ui.theme.PeerRentTheme
-import kotlin.math.*
-import androidx.compose.animation.AnimatedContentTransitionScope
 import kotlinx.coroutines.delay
-
-// Data class for rental items
-data class RentalItem(
-    val id: String,
-    val name: String,
-    val price: String,
-    val description: String,
-    val category: String,
-    val ownerName: String,
-    val ownerEmail: String,
-    val imageUrl: String,
-    val rating: Float = 4.5f,
-    val available: Boolean = true
-)
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import kotlin.math.*
 
 class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val userEmail = intent.getStringExtra("USER_EMAIL") ?: "Welcome!"
+        val userEmail = intent.getStringExtra("USER_EMAIL") ?: "User"
+
+        // Initialize Cloudinary
+        try {
+            val config = mapOf(
+                "cloud_name" to "dsbv82xeg", // Replace with your credentials
+                "api_key" to "969922813769336",
+                "api_secret" to "CNZ9RMnaabxWNq-nl3TvwWwMbjI"
+            )
+            MediaManager.init(this, config)
+        } catch (e: Exception) {}
 
         setContent {
-            PeerRentTheme {
-                UniShareAppScreen(userEmail = userEmail)
-            }
+            PeerRentTheme { UniShareAppScreen(userEmail = userEmail) }
         }
     }
 }
@@ -79,6 +82,7 @@ fun UniShareAppScreen(userEmail: String) {
         topBar = {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
+            // Matches routes defined in Screen.kt
             if (currentRoute == Screen.Home.route || currentRoute == Screen.Rentals.route) {
                 CustomTopBar(scrollBehavior, currentRoute, navController, userEmail = userEmail)
             }
@@ -86,24 +90,18 @@ fun UniShareAppScreen(userEmail: String) {
         bottomBar = {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
-            // Hide bottom nav on detail page
             if (currentRoute != "item_detail/{itemId}" && currentRoute != "add_product") {
                 SmoothGooeyBottomNav(navController = navController)
             }
         },
         floatingActionButton = {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute = navBackStackEntry?.destination?.route
-            // Show FAB only on Home screen
-            if (currentRoute == Screen.Home.route) {
+            if (navBackStackEntry?.destination?.route == Screen.Home.route) {
                 FloatingActionButton(
                     onClick = { navController.navigate("add_product") },
                     containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add Product")
-                }
+                    contentColor = Color.White
+                ) { Icon(Icons.Filled.Add, contentDescription = "Add") }
             }
         }
     ) { paddingValues ->
@@ -113,1124 +111,82 @@ fun UniShareAppScreen(userEmail: String) {
 
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, userEmail: String) {
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Home.route,
-        modifier = modifier,
-        enterTransition = {
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                animationSpec = tween(300, easing = FastOutSlowInEasing)
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        exitTransition = {
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                animationSpec = tween(300, easing = FastOutSlowInEasing)
-            ) + fadeOut(animationSpec = tween(300))
-        },
-        popEnterTransition = {
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                animationSpec = tween(300, easing = FastOutSlowInEasing)
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        popExitTransition = {
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                animationSpec = tween(300, easing = FastOutSlowInEasing)
-            ) + fadeOut(animationSpec = tween(300))
-        }
-    ) {
-        composable(Screen.Home.route) {
-            HomeScreenContent(navController = navController)
-        }
+    NavHost(navController = navController, startDestination = Screen.Home.route, modifier = modifier) {
+        composable(Screen.Home.route) { HomeScreenContent(navController = navController) }
         composable(Screen.Rentals.route) { RentalScreen() }
-        composable(Screen.Profile.route) {
-            ProfileScreen(navController = navController, userEmail = userEmail)
-        }
+        composable(Screen.Profile.route) { ProfileScreen(navController = navController, userEmail = userEmail) }
         composable(
             route = "item_detail/{itemId}",
-            arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+            arguments = listOf(navArgument("itemId") { type = NavType.IntType }) // Updated to Int to match DB
         ) { backStackEntry ->
-            val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
-            ItemDetailScreen(navController = navController, itemId = itemId)
+            val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
+            ItemDetailScreen(navController, itemId, userEmail)
         }
-        composable(
-            route = "category/{categoryName}",
-            arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
-            CategoryListScreen(navController = navController, categoryName = categoryName)
-        }
-        composable("add_product") {
-            AddProductScreen(navController = navController, userEmail = userEmail)
-        }
+        composable("add_product") { AddProductScreen(navController, userEmail) }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CustomTopBar(scrollBehavior: TopAppBarScrollBehavior?, currentRoute: String?, navController: NavHostController, userEmail: String) {
-    val title = when (currentRoute) {
-        Screen.Home.route -> "Home"
-        Screen.Rentals.route -> "Rentals"
-        else -> ""
-    }
-    val subTitle = if (currentRoute == Screen.Home.route) userEmail else null
-    val context = LocalContext.current
-
-    TopAppBar(
-        title = {
-            Column {
-                Text(title, fontSize = 20.sp, style = MaterialTheme.typography.titleLarge)
-                subTitle?.let { Text(it, fontSize = 12.sp, color = Color.Gray, style = MaterialTheme.typography.bodySmall) }
-            }
-        },
-        actions = {
-            if (currentRoute == Screen.Home.route) {
-                IconButton(onClick = {
-                    val intent = Intent(context, ChatActivity::class.java)
-                    intent.putExtra("CURRENT_USER_EMAIL", userEmail)
-                    context.startActivity(intent)
-                }) { Icon(Icons.Filled.Chat, contentDescription = "Messages") }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
-                    Icon(
-                        imageVector = Icons.Filled.Person,
-                        contentDescription = "Profile",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(MaterialTheme.shapes.small)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                    )
-                }
-            }
-        },
-        scrollBehavior = scrollBehavior,
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrolledContainerColor = MaterialTheme.colorScheme.surface
-        )
-    )
-}
-
-// Sample data - Replace with Firebase data later
-fun getSampleRentalItems(): List<RentalItem> {
-    return listOf(
-        RentalItem("1", "Camera", "₹200/day", "Professional DSLR camera perfect for photography enthusiasts. Includes lens kit and tripod.", "Electronics", "John Doe", "john@university.edu", "https://picsum.photos/seed/camera/400"),
-        RentalItem("2", "Laptop", "₹500/day", "High-performance laptop with 16GB RAM, ideal for coding and design work.", "Electronics", "Jane Smith", "jane@university.edu", "https://picsum.photos/seed/laptop/400"),
-        RentalItem("3", "Bike", "₹100/day", "Mountain bike in excellent condition. Perfect for campus commute.", "Sports", "Mike Johnson", "mike@university.edu", "https://picsum.photos/seed/bike/400"),
-        RentalItem("4", "Projector", "₹300/day", "HD projector suitable for presentations and movie nights.", "Electronics", "Sarah Wilson", "sarah@university.edu", "https://picsum.photos/seed/projector/400"),
-        RentalItem("5", "Guitar", "₹150/day", "Acoustic guitar for beginners and intermediate players.", "Music", "Tom Brown", "tom@university.edu", "https://picsum.photos/seed/guitar/400"),
-        RentalItem("6", "Textbook: Data Structures", "₹50/day", "CS textbook for semester courses. Like new condition.", "Books", "Emily Davis", "emily@university.edu", "https://picsum.photos/seed/book/400"),
-    )
 }
 
 @Composable
 fun HomeScreenContent(navController: NavHostController) {
-    val rentalItems = remember { getSampleRentalItems() }
+    val rentalItems = remember { mutableStateListOf<RentalItem>() }
+    var isLoading by remember { mutableStateOf(true) }
 
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 16.dp)
-    ) {
+    // Real-time fetching from your Fedora backend
+    LaunchedEffect(Unit) {
+        RetrofitClient.instance.getAvailableItems().enqueue(object : Callback<List<RentalItem>> {
+            override fun onResponse(call: Call<List<RentalItem>>, response: Response<List<RentalItem>>) {
+                if (response.isSuccessful) {
+                    rentalItems.clear()
+                    response.body()?.let { rentalItems.addAll(it) }
+                }
+                isLoading = false
+            }
+            override fun onFailure(call: Call<List<RentalItem>>, t: Throwable) { isLoading = false }
+        })
+    }
+
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxSize()) {
         item { SearchBarSection() }
         item { BannerCarousel() }
         item { CategoryRow(navController = navController) }
         item {
-            Text(
-                "Popular Rentals",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+            Text("Popular Rentals", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp))
         }
         item {
-            RentalItemGrid(
-                items = rentalItems,
-                onItemClick = { item ->
-                    navController.navigate("item_detail/${item.id}")
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SearchBarSection() {
-    OutlinedTextField(
-        value = "",
-        onValueChange = { },
-        placeholder = { Text("Search for rentals...") },
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        singleLine = true,
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search") },
-        trailingIcon = { Icon(Icons.Filled.Mic, contentDescription = "Mic") }
-    )
-}
-
-@Composable
-fun BannerCarousel() {
-    // Replace missing local R.drawable resources with sample internet URLs
-    val banners = listOf(
-        "https://picsum.photos/seed/banner1/800/400",
-        "https://picsum.photos/seed/banner2/800/400",
-        "https://picsum.photos/seed/banner3/800/400"
-    )
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp)
-    ) {
-        items(banners) { bannerUrl ->
-            Card(
-                modifier = Modifier.width(300.dp).height(150.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                AsyncImage(
-                    model = bannerUrl,
-                    contentDescription = "Banner Image",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun CategoryRow(navController: NavHostController) {
-    val categories = listOf("Books", "Electronics", "Furniture", "Sports", "Notes", "Other")
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp)
-    ) {
-        items(categories) { category ->
-            AssistChip(
-                onClick = {
-                    navController.navigate("category/$category")
-                },
-                label = { Text(category) }
-            )
-        }
-    }
-}
-
-@Composable
-fun RentItemConfirmationDialog(
-    itemName: String,
-    ownerName: String,
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
-) {
-    var messageToRenter by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Confirm Rental",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = "Do you want to continue with renting this item?",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-
-                Text(
-                    text = "Item: $itemName",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                Text(
-                    text = "Owner: $ownerName",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = messageToRenter,
-                    onValueChange = { messageToRenter = it },
-                    label = { Text("Message to Renter") },
-                    placeholder = { Text("Write a message to the owner...") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp),
-                    maxLines = 4,
-                    minLines = 3,
-                    shape = RoundedCornerShape(12.dp)
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(messageToRenter) },
-                shape = RoundedCornerShape(8.dp),
-                enabled = messageToRenter.isNotBlank()
-            ) {
-                Icon(
-                    Icons.Default.Send,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Send Message to Renter")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("Cancel")
-            }
-        },
-        shape = RoundedCornerShape(16.dp)
-    )
-}
-
-
-@Composable
-fun RentalItemGrid(items: List<RentalItem>, onItemClick: (RentalItem) -> Unit) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = Modifier.height((items.size / 2 * 160 + 40).dp).padding(horizontal = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(items) { item ->
-            var isPressed by remember { mutableStateOf(false) }
-            val scale by animateFloatAsState(
-                targetValue = if (isPressed) 0.95f else 1f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                ),
-                label = "cardScale"
-            )
-
-            Card(
-                modifier = Modifier
-                    .scale(scale)
-                    .clickable {
-                        isPressed = true
-                        onItemClick(item)
-                    },
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(8.dp).fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    AsyncImage(
-                        model = item.imageUrl,
-                        contentDescription = item.name,
-                        modifier = Modifier.height(100.dp).fillMaxWidth().clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        item.name,
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1
-                    )
-                    Text(
-                        item.price,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
+            } else {
+                RentalItemGrid(items = rentalItems) { item ->
+                    navController.navigate("item_detail/${item.item_id}")
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ItemDetailScreen(navController: NavHostController, itemId: String) {
-    val item = remember { getSampleRentalItems().find { it.id == itemId } }
-    var showRentalDialog by remember { mutableStateOf(false) }
-    var showSuccessScreen by remember { mutableStateOf(false) }
-
-    if (item == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Item not found")
-        }
-        return
-    }
-
-    var isVisible by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        isVisible = true
-    }
-
-    // Show success screen - takes over entire screen
-    if (showSuccessScreen) {
-        RentalRequestSuccessScreen(
-            itemName = item.name,
-            onComplete = {
-                showSuccessScreen = false
-                navController.navigateUp()
-            }
-        )
-    } else {
-        // Normal detail screen content
-
-        // Show dialog on top
-        if (showRentalDialog) {
-            RentItemConfirmationDialog(
-                itemName = item.name,
-                ownerName = item.ownerName,
-                onDismiss = { showRentalDialog = false },
-                onConfirm = { message ->
-                    showRentalDialog = false
-                    showSuccessScreen = true
-                }
-            )
-        }
-
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Details") },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.navigateUp() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                        }
-                    }
-                )
-            }
-        ) { paddingValues ->
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp)
-            ) {
-                item {
-                    // Product Image with scale animation
-                    AnimatedVisibility(
-                        visible = isVisible,
-                        enter = fadeIn(animationSpec = tween(400)) +
-                                scaleIn(initialScale = 0.8f, animationSpec = tween(400, easing = FastOutSlowInEasing))
-                    ) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(300.dp),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            AsyncImage(
-                                model = item.imageUrl,
-                                contentDescription = item.name,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Item Name and Price with slide animation
-                    AnimatedVisibility(
-                        visible = isVisible,
-                        enter = fadeIn(animationSpec = tween(400, delayMillis = 100)) +
-                                slideInVertically(
-                                    initialOffsetY = { it / 2 },
-                                    animationSpec = tween(400, delayMillis = 100, easing = FastOutSlowInEasing)
-                                )
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = item.name,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = item.price,
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Rating and Category with slide animation
-                    AnimatedVisibility(
-                        visible = isVisible,
-                        enter = fadeIn(animationSpec = tween(400, delayMillis = 200)) +
-                                slideInVertically(
-                                    initialOffsetY = { it / 2 },
-                                    animationSpec = tween(400, delayMillis = 200, easing = FastOutSlowInEasing)
-                                )
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Filled.Star,
-                                    contentDescription = "Rating",
-                                    tint = Color(0xFFFFB300),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Text(
-                                    text = " ${item.rating}",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-
-                            AssistChip(
-                                onClick = { },
-                                label = { Text(item.category) }
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Description Card with slide animation
-                    AnimatedVisibility(
-                        visible = isVisible,
-                        enter = fadeIn(animationSpec = tween(400, delayMillis = 300)) +
-                                slideInVertically(
-                                    initialOffsetY = { it / 2 },
-                                    animationSpec = tween(400, delayMillis = 300, easing = FastOutSlowInEasing)
-                                )
-                    ) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = "Description",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = item.description,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Owner Info Card with slide animation
-                    AnimatedVisibility(
-                        visible = isVisible,
-                        enter = fadeIn(animationSpec = tween(400, delayMillis = 400)) +
-                                slideInVertically(
-                                    initialOffsetY = { it / 2 },
-                                    animationSpec = tween(400, delayMillis = 400, easing = FastOutSlowInEasing)
-                                )
-                    ) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = "Owner Information",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Person, contentDescription = null)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(item.ownerName)
-                                }
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Email, contentDescription = null)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(item.ownerEmail, style = MaterialTheme.typography.bodySmall)
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-
-                item {
-                    // Action Buttons with slide animation
-                    AnimatedVisibility(
-                        visible = isVisible,
-                        enter = fadeIn(animationSpec = tween(400, delayMillis = 500)) +
-                                slideInVertically(
-                                    initialOffsetY = { it / 2 },
-                                    animationSpec = tween(400, delayMillis = 500, easing = FastOutSlowInEasing)
-                                )
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Button(
-                                onClick = { showRentalDialog = true },
-                                modifier = Modifier.weight(1f).height(50.dp),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text("Rent Now")
-                            }
-
-                            OutlinedButton(
-                                onClick = { /* Handle contact owner */ },
-                                modifier = Modifier.weight(1f).height(50.dp),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(Icons.Default.Chat, contentDescription = null)
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Contact")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-data class NavigationItem(val route: String, val label: String, val icon: ImageVector)
-
-@Composable
-fun SmoothParticleEffect(isActive: Boolean) {
-    val infiniteTransition = rememberInfiniteTransition(label = "particles")
-    repeat(6) { i ->
-        val angle = (360f / 6f) * i
-        val delay = i * 50
-        val distance by infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = if (isActive) 30f else 0f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(1500, delayMillis = delay, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "distance$i"
-        )
-        val alpha by infiniteTransition.animateFloat(
-            initialValue = if (isActive) 0.8f else 0f,
-            targetValue = if (isActive) 0f else 0f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(1500, delayMillis = delay, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "alpha$i"
-        )
-        if (isActive) {
-            Box(
-                modifier = Modifier
-                    .offset(
-                        x = (cos(angle * PI / 180f) * distance).dp,
-                        y = (sin(angle * PI / 180f) * distance).dp
-                    )
-                    .size(6.dp)
-                    .background(Color(0xFF0000FF).copy(alpha = alpha), CircleShape)
-            )
-        }
-    }
-}
-
-@Composable
-fun SmoothGooeyBottomNav(navController: NavHostController) {
-    val haptic = LocalHapticFeedback.current
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-    var selectedIndex by remember { mutableIntStateOf(0) }
-    val animatedOffset by animateFloatAsState(
-        targetValue = selectedIndex.toFloat(),
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMediumLow
-        ),
-        label = "gooeyOffset"
-    )
-
-    val navigationItems = listOf(
-        NavigationItem(Screen.Home.route, Screen.Home.title, Screen.Home.icon),
-        NavigationItem(Screen.Rentals.route, Screen.Rentals.title, Screen.Rentals.icon),
-        NavigationItem(Screen.Profile.route, Screen.Profile.title, Screen.Profile.icon)
-    )
-
-    LaunchedEffect(currentRoute) {
-        val newIndex = navigationItems.indexOfFirst { it.route == currentRoute }
-        if (newIndex != -1) selectedIndex = newIndex
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(85.dp)
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                    )
-                )
-            )
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val itemWidth = size.width / navigationItems.size
-            val blobCenterX = itemWidth * (animatedOffset + 0.5f)
-            val blobCenterY = size.height / 2f
-            drawPillShape(
-                Offset(blobCenterX, blobCenterY - 8.dp.toPx()),
-                80.dp.toPx(),
-                50.dp.toPx(),
-                Color(0xFF1E90FF)
-            )
-        }
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            navigationItems.forEachIndexed { index, navItem ->
-                val isSelected = selectedIndex == index
-                val scale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.15f else 1.0f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    ),
-                    label = "iconScale$index"
-                )
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            if (selectedIndex != index) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                navController.navigate(navItem.route) {
-                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            } else {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            }
-                        }
-                        .scale(scale)
-                        .padding(vertical = 8.dp)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            navItem.icon,
-                            contentDescription = navItem.label,
-                            tint = if (isSelected) Color(0xFF0000FF) else Color.Gray,
-                            modifier = Modifier.size(if (isSelected) 26.dp else 22.dp)
-                        )
-                        SmoothParticleEffect(isSelected)
-                    }
-                    AnimatedVisibility(
-                        visible = isSelected,
-                        enter = fadeIn(tween(300)) + slideInVertically(tween(300), initialOffsetY = { it / 2 }),
-                        exit = fadeOut(tween(200)) + slideOutVertically(tween(200), targetOffsetY = { it / 2 })
-                    ) {
-                        Text(
-                            text = navItem.label,
-                            fontSize = 11.sp,
-                            color = if (isSelected) Color(0xFF0000FF) else Color.Gray,
-                            modifier = Modifier.padding(top = 2.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-fun DrawScope.drawPillShape(center: Offset, width: Float, height: Float, color: Color) {
-    drawRoundRect(
-        brush = Brush.radialGradient(
-            colors = listOf(color.copy(alpha = 0.9f), color.copy(alpha = 0.7f)),
-            center = center,
-            radius = width / 2f
-        ),
-        topLeft = Offset(center.x - width / 2f, center.y - height / 2f),
-        size = Size(width, height),
-        cornerRadius = CornerRadius(height / 2f, height / 2f)
-    )
-}
-
-// NEW: Success Screen Composable
-@Composable
-fun SuccessScreen(
-    productName: String,
-    onComplete: () -> Unit
-) {
-    var showCheckmark by remember { mutableStateOf(false) }
-    var showText by remember { mutableStateOf(false) }
-    var showDetails by remember { mutableStateOf(false) }
-
-    // Animate checkmark appearance
-    val checkmarkScale by animateFloatAsState(
-        targetValue = if (showCheckmark) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "checkmarkScale"
-    )
-
-    // Rotation animation for checkmark
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse"
-    )
-
-    LaunchedEffect(Unit) {
-        delay(200)
-        showCheckmark = true
-        delay(400)
-        showText = true
-        delay(300)
-        showDetails = true
-        delay(2500)
-        onComplete()
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(32.dp)
-        ) {
-            // Success checkmark circle
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .scale(checkmarkScale * pulseScale)
-                    .background(
-                        color = Color(0xFF4CAF50),
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Success",
-                    modifier = Modifier.size(80.dp),
-                    tint = Color.White
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Success message with fade in animation
-            AnimatedVisibility(
-                visible = showText,
-                enter = fadeIn(animationSpec = tween(500)) +
-                        slideInVertically(
-                            animationSpec = tween(500),
-                            initialOffsetY = { it / 2 }
-                        )
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "Success!",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4CAF50)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "The item has been successfully placed for rent",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Product details card
-            AnimatedVisibility(
-                visible = showDetails,
-                enter = fadeIn(animationSpec = tween(500)) +
-                        slideInVertically(
-                            animationSpec = tween(500),
-                            initialOffsetY = { it / 2 }
-                        )
-            ) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ShoppingCart,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = productName,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Your item is now visible to other users",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun RentalRequestSuccessScreen(
-    itemName: String,
-    onComplete: () -> Unit
-) {
-    var showCheckmark by remember { mutableStateOf(false) }
-    var showText by remember { mutableStateOf(false) }
-    var showDetails by remember { mutableStateOf(false) }
-
-    val checkmarkScale by animateFloatAsState(
-        targetValue = if (showCheckmark) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "checkmarkScale"
-    )
-
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse"
-    )
-
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(200)
-        showCheckmark = true
-        kotlinx.coroutines.delay(400)
-        showText = true
-        kotlinx.coroutines.delay(300)
-        showDetails = true
-        kotlinx.coroutines.delay(2500)
-        onComplete()
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(32.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .scale(checkmarkScale * pulseScale)
-                    .background(
-                        color = Color(0xFF4CAF50),
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Success",
-                    modifier = Modifier.size(80.dp),
-                    tint = Color.White
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            AnimatedVisibility(
-                visible = showText,
-                enter = fadeIn(animationSpec = tween(500)) +
-                        slideInVertically(
-                            animationSpec = tween(500),
-                            initialOffsetY = { it / 2 }
-                        )
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "Request Sent!",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4CAF50)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Your renter has been informed",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            AnimatedVisibility(
-                visible = showDetails,
-                enter = fadeIn(animationSpec = tween(500)) +
-                        slideInVertically(
-                            animationSpec = tween(500),
-                            initialOffsetY = { it / 2 }
-                        )
-            ) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Email,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = itemName,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "The owner will review your request and respond soon",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-// UPDATED: AddProductScreen with Success Screen Integration
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddProductScreen(navController: NavHostController, userEmail: String) {
-    var productName by remember { mutableStateOf("") }
-    var productPrice by remember { mutableStateOf("") }
-    var productDescription by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Electronics") }
-    var expanded by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf("") }
+    var price by remember { mutableStateOf("") }
+    var desc by remember { mutableStateOf("") }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var isUploading by remember { mutableStateOf(false) }
     var showSuccessScreen by remember { mutableStateOf(false) }
-    val categories = listOf("Books", "Electronics", "Furniture", "Sports", "Notes", "Other")
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { imageUri = it }
 
-    // Show success screen overlay
     if (showSuccessScreen) {
-        SuccessScreen(
-            productName = productName,
-            onComplete = {
-                showSuccessScreen = false
-                navController.navigateUp()
-            }
-        )
+        SuccessScreen(productName = name) {
+            showSuccessScreen = false
+            navController.navigateUp()
+        }
     } else {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Add Product for Rent") },
+                    title = { Text("Add Product") },
                     navigationIcon = {
                         IconButton(onClick = { navController.navigateUp() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -1238,372 +194,191 @@ fun AddProductScreen(navController: NavHostController, userEmail: String) {
                     }
                 )
             }
-        ) { paddingValues ->
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                item {
-                    Text(
-                        "List Your Item",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        "Fill in the details to rent out your product",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                }
-
-                item {
-                    // Product Image Upload (Placeholder)
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clickable { /* Handle image upload */ },
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    Icons.Filled.Add,
-                                    contentDescription = "Add Image",
-                                    modifier = Modifier.size(48.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text("Tap to add product image")
-                            }
-                        }
+        ) { padding ->
+            Column(modifier = Modifier.padding(padding).padding(16.dp).verticalScroll(rememberScrollState())) {
+                Card(modifier = Modifier.fillMaxWidth().height(200.dp).clickable { launcher.launch("image/*") }) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        if (imageUri == null) Icon(Icons.Filled.AddAPhoto, "Add Image", modifier = Modifier.size(48.dp))
+                        else AsyncImage(model = imageUri, contentDescription = null, contentScale = ContentScale.Crop)
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Product Name") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = price, onValueChange = { price = it }, label = { Text("Price/Day") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
 
-                item {
-                    OutlinedTextField(
-                        value = productName,
-                        onValueChange = { productName = it },
-                        label = { Text("Product Name") },
-                        placeholder = { Text("e.g., Canon DSLR Camera") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        leadingIcon = { Icon(Icons.Default.ShoppingCart, contentDescription = null) }
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = productPrice,
-                        onValueChange = { productPrice = it },
-                        label = { Text("Rental Price per Day") },
-                        placeholder = { Text("e.g., 200") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        prefix = { Text("₹ ") },
-                        suffix = { Text("/day") },
-                        leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) }
-                    )
-                }
-
-                item {
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded }
-                    ) {
-                        OutlinedTextField(
-                            value = selectedCategory,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Category") },
-                            trailingIcon = {
-                                Icon(
-                                    if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                    contentDescription = "Dropdown"
+                Button(
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    enabled = !isUploading && imageUri != null && name.isNotBlank(),
+                    onClick = {
+                        isUploading = true
+                        // Upload image to Cloudinary first
+                        MediaManager.get().upload(imageUri).unsigned("your_preset").callback(object : UploadCallback {
+                            override fun onSuccess(requestId: String?, resultData: Map<*, *>) {
+                                val cloudUrl = resultData["secure_url"].toString()
+                                val data = mapOf(
+                                    "name" to name, "price" to price, "description" to desc,
+                                    "category" to "Electronics", "email" to userEmail, "image_url" to cloudUrl
                                 )
-                            },
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            categories.forEach { category ->
-                                DropdownMenuItem(
-                                    text = { Text(category) },
-                                    onClick = {
-                                        selectedCategory = category
-                                        expanded = false
+                                // Send link and details to Fedora backend
+                                RetrofitClient.instance.addItem(data).enqueue(object : Callback<ApiResponse> {
+                                    override fun onResponse(call: Call<ApiResponse>, r: Response<ApiResponse>) {
+                                        if (r.isSuccessful) showSuccessScreen = true
+                                        isUploading = false
                                     }
-                                )
+                                    override fun onFailure(call: Call<ApiResponse>, t: Throwable) { isUploading = false }
+                                })
                             }
-                        }
+                            override fun onError(id: String?, err: ErrorInfo?) { isUploading = false }
+                            override fun onStart(id: String?) {}
+                            override fun onProgress(id: String?, b: Long, t: Long) {}
+                            override fun onReschedule(id: String?, err: ErrorInfo?) {}
+                        }).dispatch()
                     }
-                }
+                ) { if (isUploading) CircularProgressIndicator(color = Color.White) else Text("Place item for Rent") }
+            }
+        }
+    }
+}
 
-                item {
-                    OutlinedTextField(
-                        value = productDescription,
-                        onValueChange = { productDescription = it },
-                        label = { Text("Description") },
-                        placeholder = { Text("Describe your product, its condition, and any additional details...") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp),
-                        maxLines = 6,
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.DateRange,
-                                contentDescription = null
-                            )
-                        }
-                    )
-                }
+// --- UI HELPERS WITH FIXED PARAMETER NAMES ---
 
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable fun CustomTopBar(
+    scrollBehavior: TopAppBarScrollBehavior?,
+    currentRoute: String?,
+    navController: NavHostController,
+    userEmail: String
+) {
+    TopAppBar(
+        title = { Column { Text(currentRoute ?: "Home"); Text(userEmail, fontSize = 12.sp, color = Color.Gray) } },
+        actions = {
+            IconButton(onClick = { /* Handle chat */ }) { Icon(Icons.Filled.Chat, "Messages") }
+            IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
+                Icon(Icons.Filled.Person, "Profile", modifier = Modifier.size(32.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant))
+            }
+        },
+        scrollBehavior = scrollBehavior
+    )
+}
 
-                    Button(
-                        onClick = {
-                            // TODO: Save product to Firebase
-                            // Show success screen
-                            showSuccessScreen = true
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        enabled = productName.isNotBlank() && productPrice.isNotBlank() && productDescription.isNotBlank()
-                    ) {
-                        Icon(Icons.Default.Check, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Place item for Rent", fontSize = 16.sp)
-                    }
+@Composable fun SearchBarSection() { OutlinedTextField(value = "", onValueChange = {}, placeholder = { Text("Search...") }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), leadingIcon = { Icon(Icons.Filled.Search, null) }) }
+@Composable fun BannerCarousel() { Box(modifier = Modifier.height(120.dp).fillMaxWidth().background(Color.LightGray)) }
+@Composable fun CategoryRow(navController: NavHostController) { Row(modifier = Modifier.horizontalScroll(rememberScrollState())) { listOf("Books", "Electronics", "Sports").forEach { AssistChip(onClick = {}, label = { Text(it) }, modifier = Modifier.padding(4.dp)) } } }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    OutlinedButton(
-                        onClick = { navController.navigateUp() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Cancel", fontSize = 16.sp)
-                    }
+@Composable fun RentalItemGrid(items: List<RentalItem>, onClick: (RentalItem) -> Unit) {
+    LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.height(500.dp)) {
+        items(items) { item ->
+            Card(modifier = Modifier.clickable { onClick(item) }.padding(4.dp)) {
+                Column {
+                    AsyncImage(model = item.imageUrl, contentDescription = null, modifier = Modifier.height(100.dp).fillMaxWidth(), contentScale = ContentScale.Crop)
+                    Text(item.name, fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), maxLines = 1)
+                    Text("₹${item.price}", modifier = Modifier.padding(start = 4.dp, bottom = 4.dp), color = MaterialTheme.colorScheme.primary)
                 }
             }
+        }
+    }
+}
+
+@Composable fun SmoothGooeyBottomNav(navController: NavHostController) {
+    NavigationBar {
+        listOf(Screen.Home, Screen.Rentals, Screen.Profile).forEach { screen ->
+            NavigationBarItem(
+                selected = false,
+                onClick = { navController.navigate(screen.route) },
+                icon = { Icon(screen.icon, null) },
+                label = { Text(screen.title) }
+            )
+        }
+    }
+}
+
+@Composable fun SuccessScreen(productName: String, onComplete: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(Icons.Filled.CheckCircle, "Success", tint = Color.Green, modifier = Modifier.size(100.dp))
+            Text("Listed $productName!", fontWeight = FontWeight.Bold)
+            LaunchedEffect(Unit) { delay(2000); onComplete() }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CategoryListScreen(navController: NavHostController, categoryName: String) {
-    val allItems = remember { getSampleRentalItems() }
-    val filteredItems = remember(categoryName) {
-        allItems.filter { it.category == categoryName }
-    }
+@Composable fun ItemDetailScreen(navController: NavHostController, itemId: Int, userEmail: String) {
+    var item by remember { mutableStateOf<RentalItem?>(null) }
+    var showRentalDialog by remember { mutableStateOf(false) }
+    var showRequestSuccess by remember { mutableStateOf(false) }
 
-    var isVisible by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        isVisible = true
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(categoryName) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        if (filteredItems.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.ShoppingCart,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        "No items in $categoryName",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        "Check back later for new listings",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                }
+    LaunchedEffect(itemId) {
+        RetrofitClient.instance.getAvailableItems().enqueue(object : Callback<List<RentalItem>> {
+            override fun onResponse(call: Call<List<RentalItem>>, response: Response<List<RentalItem>>) {
+                item = response.body()?.find { it.item_id == itemId }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                item {
-                    AnimatedVisibility(
-                        visible = isVisible,
-                        enter = fadeIn(animationSpec = tween(300)) +
-                                slideInVertically(
-                                    initialOffsetY = { -it / 4 },
-                                    animationSpec = tween(300)
-                                )
-                    ) {
-                        Text(
-                            "${filteredItems.size} items available",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.Gray
-                        )
-                    }
-                }
+            override fun onFailure(call: Call<List<RentalItem>>, t: Throwable) {}
+        })
+    }
 
-                itemsIndexed(filteredItems) { index, item ->
-                    AnimatedVisibility(
-                        visible = isVisible,
-                        enter = fadeIn(animationSpec = tween(300, delayMillis = index * 50)) +
-                                slideInVertically(
-                                    initialOffsetY = { it / 2 },
-                                    animationSpec = tween(300, delayMillis = index * 50)
-                                )
-                    ) {
-                        CategoryItemCard(
-                            item = item,
-                            onClick = { navController.navigate("item_detail/${item.id}") }
-                        )
+    if (showRequestSuccess) {
+        RentalRequestSuccessScreen(itemName = item?.name ?: "") { showRequestSuccess = false; navController.navigateUp() }
+    } else {
+        if (showRentalDialog) {
+            RentItemConfirmationDialog(item?.name ?: "", onDismiss = { showRentalDialog = false }) { days ->
+                val data = mapOf("item_id" to itemId.toString(), "renter_email" to userEmail, "rental_days" to days)
+                RetrofitClient.instance.requestItem(data).enqueue(object : Callback<ApiResponse> {
+                    override fun onResponse(call: Call<ApiResponse>, r: Response<ApiResponse>) {
+                        if (r.isSuccessful) { showRentalDialog = false; showRequestSuccess = true }
+                        else Toast.makeText(navController.context, "Max 5 active rentals reached", Toast.LENGTH_SHORT).show()
                     }
+                    override fun onFailure(call: Call<ApiResponse>, t: Throwable) {}
+                })
+            }
+        }
+
+        Scaffold(topBar = { TopAppBar(title = { Text("Details") }, navigationIcon = { IconButton(onClick = { navController.navigateUp() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } }) }) { padding ->
+            item?.let {
+                Column(modifier = Modifier.padding(padding).padding(16.dp)) {
+                    AsyncImage(model = it.imageUrl, contentDescription = null, modifier = Modifier.height(300.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Crop)
+                    Text(it.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                    Text("₹${it.price}/day", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
+                    Text(it.description, modifier = Modifier.padding(vertical = 16.dp))
+                    Spacer(modifier = Modifier.weight(1f))
+                    Button(onClick = { showRentalDialog = true }, modifier = Modifier.fillMaxWidth().height(50.dp)) { Text("Rent Now") }
                 }
             }
         }
     }
 }
 
-@Composable
-fun CategoryItemCard(item: RentalItem, onClick: () -> Unit) {
-    var isPressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "cardScale"
-    )
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .scale(scale)
-            .clickable {
-                isPressed = true
-                onClick()
-            },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Product Image
-            AsyncImage(
-                model = item.imageUrl,
-                contentDescription = item.name,
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            // Product Details
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = item.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Filled.Star,
-                            contentDescription = "Rating",
-                            tint = Color(0xFFFFB300),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = " ${item.rating}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = item.price,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    if (item.available) {
-                        AssistChip(
-                            onClick = { },
-                            label = {
-                                Text(
-                                    "Available",
-                                    fontSize = 12.sp
-                                )
-                            },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f),
-                                labelColor = Color(0xFF4CAF50)
-                            )
-                        )
-                    }
-                }
+@Composable fun RentItemConfirmationDialog(itemName: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+    var days by remember { mutableStateOf("1") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Rent $itemName") },
+        text = {
+            Column {
+                Text("Days needed:")
+                OutlinedTextField(value = days, onValueChange = { days = it }, modifier = Modifier.padding(top = 8.dp))
             }
+        },
+        confirmButton = { Button(onClick = { onConfirm(days) }) { Text("Request") } }
+    )
+}
+
+@Composable fun RentalRequestSuccessScreen(itemName: String, onComplete: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(Icons.Filled.Email, "Sent", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(100.dp))
+            Text("Request sent for $itemName!")
+            LaunchedEffect(Unit) { delay(2000); onComplete() }
+        }
+    }
+}
+
+@Composable fun ProfileScreen(navController: NavHostController, userEmail: String) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(Icons.Filled.Person, null, modifier = Modifier.size(80.dp))
+            Text("Profile for $userEmail", style = MaterialTheme.typography.headlineSmall)
         }
     }
 }

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.ezio.unishare.app-mergeDebugResources-70:/values-zu/values-zu.xml",
+            "outputFile": "com.ezio.unishare.app-mergeDebugResources-76:/values-zu/values-zu.xml",
             "map": [
                 {
                     "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/d189c5514d0368c29a4dc3261235089c/transformed/jetified-foundation-release/res/values-zu/values-zu.xml",
