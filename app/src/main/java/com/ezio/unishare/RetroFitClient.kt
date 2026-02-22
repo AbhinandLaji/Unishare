@@ -6,6 +6,7 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.GET
 import retrofit2.Call
+import retrofit2.http.Query
 
 interface ApiService {
     @POST("register")
@@ -37,6 +38,20 @@ interface ApiService {
 
     @POST("confirmation_toggle")
     fun toggleRequest(@Body body: Map<String, String>): Call<ApiResponse>
+
+    @GET("my_rentals")
+    fun getMyRentals(@Query("email") email: String): Call<List<RentalRequest>>
+
+    @GET("my_listed_items")
+    fun getMyListedItems(@Query("email") email: String): Call<List<RentalItem>>
+
+    @GET("pending_requests")
+    fun getPendingRequests(@Query("email") email: String): Call<List<RentalRequest>>
+
+    @GET("pending_count")
+    fun getPendingCount(@Query("email") email: String): Call<ApiResponse>
+
+
 }
 
 object RetrofitClient {

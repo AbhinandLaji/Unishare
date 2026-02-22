@@ -42,6 +42,13 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.text.style.TextAlign
 
 class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,7 +114,9 @@ fun UniShareAppScreen(userEmail: String) {
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, userEmail: String) {
     NavHost(navController = navController, startDestination = Screen.Home.route, modifier = modifier) {
         composable(Screen.Home.route) { HomeScreenContent(navController = navController) }
-        composable(Screen.Rentals.route) { RentalScreen() }
+        composable(Screen.Rentals.route) {
+            RentalScreen(userEmail = userEmail)
+        }
         composable(Screen.Profile.route) { ProfileScreen(navController = navController, userEmail = userEmail) }
         composable(
             route = "item_detail/{itemId}",
@@ -117,6 +126,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, 
             ItemDetailScreen(navController, itemId, userEmail)
         }
         composable("add_product") { AddProductScreen(navController, userEmail) }
+        composable("rental_requests") { RentalRequestsScreen(userEmail = userEmail) }
     }
 }
 
@@ -294,19 +304,76 @@ fun AddProductScreen(navController: NavHostController, userEmail: String) {
 
 // --- UI HELPERS ---
 
+// Replace CustomTopBar in HomeActivity.kt with this
+
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun CustomTopBar(
+@Composable
+fun CustomTopBar(
     scrollBehavior: TopAppBarScrollBehavior?,
     currentRoute: String?,
     navController: NavHostController,
     userEmail: String
 ) {
+    var pendingCount by remember { mutableStateOf(0) }
+
+    // Poll for pending requests every 30 seconds
+    LaunchedEffect(userEmail) {
+        while (true) {
+            RetrofitClient.instance.getPendingCount(userEmail)
+                .enqueue(object : retrofit2.Callback<ApiResponse> {
+                    override fun onResponse(
+                        call: retrofit2.Call<ApiResponse>,
+                        response: retrofit2.Response<ApiResponse>
+                    ) {
+                        if (response.isSuccessful) {
+                            pendingCount = response.body()?.count ?: 0
+                        }
+                    }
+                    override fun onFailure(call: retrofit2.Call<ApiResponse>, t: Throwable) {}
+                })
+            kotlinx.coroutines.delay(30_000) // refresh every 30 seconds
+        }
+    }
+
     TopAppBar(
-        title = { Column { Text(currentRoute ?: "Home"); Text(userEmail, fontSize = 12.sp, color = Color.Gray) } },
+        title = {
+            Column {
+                Text(currentRoute ?: "Home")
+                Text(userEmail, fontSize = 12.sp, color = Color.Gray)
+            }
+        },
         actions = {
-            IconButton(onClick = { /* Handle chat */ }) { Icon(Icons.Filled.Chat, "Messages") }
+            // Bell icon with badge
+            Box {
+                IconButton(onClick = { navController.navigate("rental_requests") }) {
+                    Icon(Icons.Filled.Notifications, contentDescription = "Requests")
+                }
+                if (pendingCount > 0) {
+                    Badge(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = (-6).dp, y = 6.dp),
+                        containerColor = MaterialTheme.colorScheme.error
+                    ) {
+                        Text(
+                            text = if (pendingCount > 9) "9+" else pendingCount.toString(),
+                            color = Color.White,
+                            fontSize = 10.sp
+                        )
+                    }
+                }
+            }
+
+            // Profile icon
             IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
-                Icon(Icons.Filled.Person, "Profile", modifier = Modifier.size(32.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant))
+                Icon(
+                    Icons.Filled.Person,
+                    "Profile",
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                )
             }
         },
         scrollBehavior = scrollBehavior
@@ -354,53 +421,156 @@ fun AddProductScreen(navController: NavHostController, userEmail: String) {
     }
 }
 
+// Replace the ItemDetailScreen function and related composables in HomeActivity.kt with this
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun ItemDetailScreen(navController: NavHostController, itemId: Int, userEmail: String) {
     var item by remember { mutableStateOf<RentalItem?>(null) }
     var showRentalDialog by remember { mutableStateOf(false) }
     var showRequestSuccess by remember { mutableStateOf(false) }
+    var visible by remember { mutableStateOf(false) }
+
+    // NEW: State to track if the user has already requested this item
+    var hasRequested by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     LaunchedEffect(itemId) {
+        // 1. Fetch Item Details
         RetrofitClient.instance.getAvailableItems().enqueue(object : Callback<List<RentalItem>> {
             override fun onResponse(call: Call<List<RentalItem>>, response: Response<List<RentalItem>>) {
                 item = response.body()?.find { it.item_id == itemId }
+                visible = true
             }
             override fun onFailure(call: Call<List<RentalItem>>, t: Throwable) {}
+        })
+
+        // 2. Fetch User's Rentals to check if already requested
+        // 2. Fetch User's Rentals to check if already requested
+        RetrofitClient.instance.getMyRentals(userEmail).enqueue(object : Callback<List<RentalRequest>> {
+            override fun onResponse(call: Call<List<RentalRequest>>, response: Response<List<RentalRequest>>) {
+                val rentals = response.body() ?: emptyList()
+                // If the item exists in their rentals and is pending or accepted, lock the button
+                val existingRequest = rentals.find {
+                    it.item_id == itemId && (it.status == "pending" || it.status == "Accepted")
+                }
+                if (existingRequest != null) {
+                    hasRequested = true
+                }
+            }
+
+            override fun onFailure(call: Call<List<RentalRequest>>, t: Throwable) {}
         })
     }
 
     if (showRequestSuccess) {
-        RentalRequestSuccessScreen(itemName = item?.name ?: "") { showRequestSuccess = false; navController.navigateUp() }
+        RentalRequestSuccessScreen(itemName = item?.name ?: "") {
+            showRequestSuccess = false
+            // Optional: Remove navigateUp() here if you want them to stay on the page and see the grey button
+            // navController.navigateUp()
+        }
     } else {
         if (showRentalDialog) {
             RentItemConfirmationDialog(item?.name ?: "", onDismiss = { showRentalDialog = false }) { days ->
                 val data = mapOf("item_id" to itemId.toString(), "renter_email" to userEmail, "rental_days" to days)
                 RetrofitClient.instance.requestItem(data).enqueue(object : Callback<ApiResponse> {
                     override fun onResponse(call: Call<ApiResponse>, r: Response<ApiResponse>) {
-                        if (r.isSuccessful) { showRentalDialog = false; showRequestSuccess = true }
-                        else Toast.makeText(context, "Max 5 active rentals reached", Toast.LENGTH_SHORT).show()
+                        if (r.isSuccessful) {
+                            showRentalDialog = false
+                            showRequestSuccess = true
+                            hasRequested = true // Instantly lock the button upon success
+                        } else {
+                            Toast.makeText(context, "Max 5 active rentals reached", Toast.LENGTH_SHORT).show()
+                        }
                     }
                     override fun onFailure(call: Call<ApiResponse>, t: Throwable) {}
                 })
             }
         }
 
-        Scaffold(topBar = { TopAppBar(title = { Text("Details") }, navigationIcon = { IconButton(onClick = { navController.navigateUp() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } }) }) { padding ->
-            item?.let {
-                Column(modifier = Modifier.padding(padding).padding(16.dp)) {
-                    AsyncImage(model = it.imageUrl, contentDescription = null, modifier = Modifier.height(300.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Crop)
-                    Text(it.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                    Text("₹${it.price}/day", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
-                    Text(it.description, modifier = Modifier.padding(vertical = 16.dp))
-                    Spacer(modifier = Modifier.weight(1f))
-                    Button(onClick = { showRentalDialog = true }, modifier = Modifier.fillMaxWidth().height(50.dp)) { Text("Rent Now") }
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Details") },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.navigateUp() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) }
+                    }
+                )
+            }
+        ) { padding ->
+            AnimatedVisibility(
+                visible = visible,
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                modifier = Modifier.padding(padding)
+            ) {
+                item?.let {
+                    Column(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
+                        AsyncImage(
+                            model = it.imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier.height(300.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(it.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                        Text("₹${it.price}/day", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                        Text("Owner Details", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                        Text("Email: ${it.owner_email}", color = Color.Gray)
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text("Description", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                        Text(it.description, modifier = Modifier.padding(top = 4.dp))
+
+                        Spacer(modifier = Modifier.weight(1f))
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // --- BUTTON LOGIC ---
+                        if (userEmail != it.owner_email) {
+                            if (hasRequested) {
+                                // Locked Grey Button
+                                Button(
+                                    onClick = { },
+                                    enabled = false,
+                                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        disabledContainerColor = Color.Gray,
+                                        disabledContentColor = Color.White
+                                    )
+                                ) {
+                                    Text("Request Sent")
+                                }
+                            } else {
+                                // Active Blue Button
+                                Button(
+                                    onClick = { showRentalDialog = true },
+                                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                                ) {
+                                    Text("Rent Now")
+                                }
+                            }
+                        } else {
+                            Surface(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
+                            ) {
+                                Text(
+                                    "This is your listing",
+                                    modifier = Modifier.padding(12.dp),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 }
-
 @Composable fun RentItemConfirmationDialog(itemName: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     var days by remember { mutableStateOf("1") }
     AlertDialog(
@@ -426,11 +596,3 @@ fun AddProductScreen(navController: NavHostController, userEmail: String) {
     }
 }
 
-@Composable fun ProfileScreen(navController: NavHostController, userEmail: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Filled.Person, null, modifier = Modifier.size(80.dp))
-            Text("Profile for $userEmail", style = MaterialTheme.typography.headlineSmall)
-        }
-    }
-}

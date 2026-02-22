@@ -3,11 +3,7 @@ package com.ezio.unishare
 import com.google.gson.annotations.SerializedName
 
 // Matches your Python 'jsonify' structure
-data class ApiResponse(
-    val message: String? = null,
-    val error: String? = null,
-    val user_name: String? = null
-)
+
 
 // Authentication Request Models
 data class RegisterRequest(val email: String)
@@ -25,4 +21,28 @@ data class RentalItem(
     val imageUrl: String,
     val rating: Float = 4.5f,
     val is_available: Boolean = true
+)
+
+data class RentalRequest(
+    val rental_id: Int,
+    val renter_email: String,
+    val rental_days: String,
+    val status: String,
+    val name: String,
+    val item_id: Int,
+    val price_per_day: String,
+    val image_url: String
+)
+
+data class ApiResponse(
+    val message: String? = null,
+    val error: String? = null,
+    val user_name: String? = null,
+    val count: Int? = null    // ADD THIS
+)
+
+data class MyRental(
+    val rental_id: Int,
+    val item_id: Int,
+    val status: String
 )
