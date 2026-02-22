@@ -4,7 +4,7 @@
             "outputFile": "com.ezio.unishare.app-mergeDebugResources-76:/values-v16/values-v16.xml",
             "map": [
                 {
-                    "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/3e1da29f646810cfb05e4f909b4bf7d3/transformed/core-1.12.0/res/values-v16/values-v16.xml",
+                    "source": "C:\\Users\\hadiz\\.gradle\\caches\\9.1.0\\transforms\\3e1da29f646810cfb05e4f909b4bf7d3\\workspace\\transformed\\core-1.12.0\\res\\values-v16\\values-v16.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
@@ -14,7 +14,7 @@
                     }
                 },
                 {
-                    "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/3462092adaccb7180ef3860df660c0cb/transformed/appcompat-1.6.1/res/values-v16/values-v16.xml",
+                    "source": "C:\\Users\\hadiz\\.gradle\\caches\\9.1.0\\transforms\\3462092adaccb7180ef3860df660c0cb\\workspace\\transformed\\appcompat-1.6.1\\res\\values-v16\\values-v16.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

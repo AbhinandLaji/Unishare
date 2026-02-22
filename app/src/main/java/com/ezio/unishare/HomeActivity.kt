@@ -113,7 +113,7 @@ fun UniShareAppScreen(userEmail: String) {
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, userEmail: String) {
     NavHost(navController = navController, startDestination = Screen.Home.route, modifier = modifier) {
         composable(Screen.Home.route) { HomeScreenContent(navController = navController) }
-        composable(Screen.Rentals.route) { RentalScreen() }
+        composable(Screen.Rentals.route) { RentalScreen(userEmail = userEmail) }
         composable(Screen.Profile.route) { ProfileScreen(navController = navController, userEmail = userEmail) }
         composable(
             route = "item_detail/{itemId}",
@@ -374,11 +374,3 @@ fun AddProductScreen(navController: NavHostController, userEmail: String) {
     }
 }
 
-@Composable fun ProfileScreen(navController: NavHostController, userEmail: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Filled.Person, null, modifier = Modifier.size(80.dp))
-            Text("Profile for $userEmail", style = MaterialTheme.typography.headlineSmall)
-        }
-    }
-}

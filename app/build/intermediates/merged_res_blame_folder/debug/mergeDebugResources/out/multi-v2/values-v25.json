@@ -4,7 +4,7 @@
             "outputFile": "com.ezio.unishare.app-mergeDebugResources-76:/values-v25/values-v25.xml",
             "map": [
                 {
-                    "source": "/home/abhishek/.gradle/caches/9.1.0/transforms/3462092adaccb7180ef3860df660c0cb/transformed/appcompat-1.6.1/res/values-v25/values-v25.xml",
+                    "source": "C:\\Users\\hadiz\\.gradle\\caches\\9.1.0\\transforms\\3462092adaccb7180ef3860df660c0cb\\workspace\\transformed\\appcompat-1.6.1\\res\\values-v25\\values-v25.xml",
                     "from": {
                         "startLines": "2,3,4,6",
                         "startColumns": "4,4,4,4",
