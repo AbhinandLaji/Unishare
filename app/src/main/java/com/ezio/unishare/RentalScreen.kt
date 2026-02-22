@@ -137,7 +137,7 @@ fun RentalItemCard(item: RentalItem, backgroundColor: Color) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Owner Email", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f))
                     // UPDATED: Using ownerEmail from DataModels
-                    Text(item.ownerEmail, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, maxLines = 1)
+                    Text(item.owner_email, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, maxLines = 1)
                 }
                 AssistChip(onClick = { }, label = { Text(item.category) })
             }

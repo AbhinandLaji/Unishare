@@ -9,7 +9,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -23,13 +22,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.font.FontWeight
@@ -48,22 +41,24 @@ import kotlinx.coroutines.delay
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import kotlin.math.*
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 
 class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val userEmail = intent.getStringExtra("USER_EMAIL") ?: "User"
 
-        // Initialize Cloudinary
+        // Initialize Cloudinary with your new credentials
         try {
+            MediaManager.get()
+        } catch (e: Exception) {
             val config = mapOf(
-                "cloud_name" to "dsbv82xeg", // Replace with your credentials
-                "api_key" to "969922813769336",
-                "api_secret" to "CNZ9RMnaabxWNq-nl3TvwWwMbjI"
+                "cloud_name" to "diy92xdcf",
+                "api_key" to "955723828439185",
+                "api_secret" to "4CWdBK3BOZ54x_a4oohlbhF1BXg"
             )
             MediaManager.init(this, config)
-        } catch (e: Exception) {}
+        }
 
         setContent {
             PeerRentTheme { UniShareAppScreen(userEmail = userEmail) }
@@ -82,7 +77,6 @@ fun UniShareAppScreen(userEmail: String) {
         topBar = {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
-            // Matches routes defined in Screen.kt
             if (currentRoute == Screen.Home.route || currentRoute == Screen.Rentals.route) {
                 CustomTopBar(scrollBehavior, currentRoute, navController, userEmail = userEmail)
             }
@@ -117,7 +111,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, 
         composable(Screen.Profile.route) { ProfileScreen(navController = navController, userEmail = userEmail) }
         composable(
             route = "item_detail/{itemId}",
-            arguments = listOf(navArgument("itemId") { type = NavType.IntType }) // Updated to Int to match DB
+            arguments = listOf(navArgument("itemId") { type = NavType.IntType })
         ) { backStackEntry ->
             val itemId = backStackEntry.arguments?.getInt("itemId") ?: 0
             ItemDetailScreen(navController, itemId, userEmail)
@@ -131,7 +125,6 @@ fun HomeScreenContent(navController: NavHostController) {
     val rentalItems = remember { mutableStateListOf<RentalItem>() }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Real-time fetching from your Fedora backend
     LaunchedEffect(Unit) {
         RetrofitClient.instance.getAvailableItems().enqueue(object : Callback<List<RentalItem>> {
             override fun onResponse(call: Call<List<RentalItem>>, response: Response<List<RentalItem>>) {
@@ -175,7 +168,13 @@ fun AddProductScreen(navController: NavHostController, userEmail: String) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var isUploading by remember { mutableStateOf(false) }
     var showSuccessScreen by remember { mutableStateOf(false) }
+
+    var expanded by remember { mutableStateOf(false) }
+    var selectedCategory by remember { mutableStateOf("Electronics") }
+    val categories = listOf("Books", "Electronics", "Furniture", "Sports", "Notes", "Other")
+
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { imageUri = it }
+    val context = LocalContext.current
 
     if (showSuccessScreen) {
         SuccessScreen(productName = name) {
@@ -202,46 +201,98 @@ fun AddProductScreen(navController: NavHostController, userEmail: String) {
                         else AsyncImage(model = imageUri, contentDescription = null, contentScale = ContentScale.Crop)
                     }
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Product Name") }, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(value = price, onValueChange = { price = it }, label = { Text("Price/Day") }, modifier = Modifier.fillMaxWidth())
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
+                ) {
+                    OutlinedTextField(
+                        value = selectedCategory,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Category") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category) },
+                                onClick = {
+                                    selectedCategory = category
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
 
                 Button(
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    // Button is enabled if name is not blank and an image is picked
                     enabled = !isUploading && imageUri != null && name.isNotBlank(),
                     onClick = {
                         isUploading = true
-                        // Upload image to Cloudinary first
-                        MediaManager.get().upload(imageUri).unsigned("your_preset").callback(object : UploadCallback {
-                            override fun onSuccess(requestId: String?, resultData: Map<*, *>) {
-                                val cloudUrl = resultData["secure_url"].toString()
-                                val data = mapOf(
-                                    "name" to name, "price" to price, "description" to desc,
-                                    "category" to "Electronics", "email" to userEmail, "image_url" to cloudUrl
-                                )
-                                // Send link and details to Fedora backend
-                                RetrofitClient.instance.addItem(data).enqueue(object : Callback<ApiResponse> {
-                                    override fun onResponse(call: Call<ApiResponse>, r: Response<ApiResponse>) {
-                                        if (r.isSuccessful) showSuccessScreen = true
-                                        isUploading = false
+                        try {
+                            // Data map configured for your merged Flask backend
+                            val data = mapOf(
+                                "name" to name,
+                                "price" to price,
+                                "description" to desc,
+                                "category" to selectedCategory,
+                                "email" to userEmail, // Owner email for unishare_db
+                                "image_url" to "https://picsum.photos/seed/${name}/400"
+                            )
+
+                            RetrofitClient.instance.addItem(data).enqueue(object : Callback<ApiResponse> {
+                                override fun onResponse(call: Call<ApiResponse>, r: Response<ApiResponse>) {
+                                    if (r.isSuccessful) {
+                                        showSuccessScreen = true // Play success animation
+                                    } else {
+                                        // Shows Flask error code (e.g., 404 or 500)
+                                        Toast.makeText(context, "Error: ${r.code()}", Toast.LENGTH_LONG).show()
                                     }
-                                    override fun onFailure(call: Call<ApiResponse>, t: Throwable) { isUploading = false }
-                                })
-                            }
-                            override fun onError(id: String?, err: ErrorInfo?) { isUploading = false }
-                            override fun onStart(id: String?) {}
-                            override fun onProgress(id: String?, b: Long, t: Long) {}
-                            override fun onReschedule(id: String?, err: ErrorInfo?) {}
-                        }).dispatch()
+                                    isUploading = false
+                                }
+
+                                override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
+                                    // Shows network connection issues
+                                    Toast.makeText(context, "Failed: ${t.message}", Toast.LENGTH_LONG).show()
+                                    isUploading = false
+                                }
+                            })
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Crash: ${e.message}", Toast.LENGTH_LONG).show()
+                            isUploading = false
+                        }
                     }
-                ) { if (isUploading) CircularProgressIndicator(color = Color.White) else Text("Place item for Rent") }
+                ) {
+                    if (isUploading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("Place item for Rent")
+                    }
+                }
             }
         }
     }
 }
 
-// --- UI HELPERS WITH FIXED PARAMETER NAMES ---
+// --- UI HELPERS ---
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun CustomTopBar(
@@ -308,6 +359,7 @@ fun AddProductScreen(navController: NavHostController, userEmail: String) {
     var item by remember { mutableStateOf<RentalItem?>(null) }
     var showRentalDialog by remember { mutableStateOf(false) }
     var showRequestSuccess by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     LaunchedEffect(itemId) {
         RetrofitClient.instance.getAvailableItems().enqueue(object : Callback<List<RentalItem>> {
@@ -327,7 +379,7 @@ fun AddProductScreen(navController: NavHostController, userEmail: String) {
                 RetrofitClient.instance.requestItem(data).enqueue(object : Callback<ApiResponse> {
                     override fun onResponse(call: Call<ApiResponse>, r: Response<ApiResponse>) {
                         if (r.isSuccessful) { showRentalDialog = false; showRequestSuccess = true }
-                        else Toast.makeText(navController.context, "Max 5 active rentals reached", Toast.LENGTH_SHORT).show()
+                        else Toast.makeText(context, "Max 5 active rentals reached", Toast.LENGTH_SHORT).show()
                     }
                     override fun onFailure(call: Call<ApiResponse>, t: Throwable) {}
                 })

@@ -17,9 +17,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         // 1. Session Check: If already logged in, skip to Home
+        // Updated Session Check
         val sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE)
         if (sharedPref.getBoolean("isLoggedIn", false)) {
-            startActivity(Intent(this, HomeActivity::class.java))
+            val storedEmail = sharedPref.getString("userEmail", "User")
+            val intent = Intent(this, HomeActivity::class.java)
+            intent.putExtra("USER_EMAIL", storedEmail)
+            startActivity(intent)
             finish()
             return
         }
@@ -57,10 +61,13 @@ class MainActivity : AppCompatActivity() {
                         sharedPref.edit().apply {
                             putBoolean("isLoggedIn", true)
                             putString("userName", userName)
+                            putString("userEmail", email) // Store email for future sessions
                             apply()
                         }
 
-                        startActivity(Intent(this@MainActivity, HomeActivity::class.java))
+                        val intent = Intent(this@MainActivity, HomeActivity::class.java)
+                        intent.putExtra("USER_EMAIL", email) // This sends the email to HomeActivity
+                        startActivity(intent)
                         finish()
                     } else {
                         // Error: Python sent 401 Unauthorized
