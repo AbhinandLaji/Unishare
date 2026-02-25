@@ -134,19 +134,35 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, 
 fun HomeScreenContent(navController: NavHostController) {
     val rentalItems = remember { mutableStateListOf<RentalItem>() }
     var isLoading by remember { mutableStateOf(true) }
+    val context = LocalContext.current // NEEDED for Toasts
 
     LaunchedEffect(Unit) {
         RetrofitClient.instance.getAvailableItems().enqueue(object : Callback<List<RentalItem>> {
             override fun onResponse(call: Call<List<RentalItem>>, response: Response<List<RentalItem>>) {
                 if (response.isSuccessful) {
                     rentalItems.clear()
-                    response.body()?.let { rentalItems.addAll(it) }
+                    response.body()?.let { items ->
+                        rentalItems.addAll(items)
+                        if (items.isEmpty()) {
+                            Toast.makeText(context, "Database returned 0 items", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(context, "Success! Loaded ${items.size} items", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    Toast.makeText(context, "Server Error: ${response.code()}", Toast.LENGTH_LONG).show()
                 }
                 isLoading = false
             }
-            override fun onFailure(call: Call<List<RentalItem>>, t: Throwable) { isLoading = false }
+            override fun onFailure(call: Call<List<RentalItem>>, t: Throwable) {
+                // CRUCIAL: This will tell us if there's a JSON crash or network failure
+                Toast.makeText(context, "Fetch Failed: ${t.message}", Toast.LENGTH_LONG).show()
+                isLoading = false
+            }
         })
     }
+
+    // ... rest of the UI (LazyColumn, etc.) stays exactly the same
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxSize()) {
         item { SearchBarSection() }
@@ -257,38 +273,55 @@ fun AddProductScreen(navController: NavHostController, userEmail: String) {
                     enabled = !isUploading && imageUri != null && name.isNotBlank(),
                     onClick = {
                         isUploading = true
-                        try {
-                            // Data map configured for your merged Flask backend
-                            val data = mapOf(
-                                "name" to name,
-                                "price" to price,
-                                "description" to desc,
-                                "category" to selectedCategory,
-                                "email" to userEmail, // Owner email for unishare_db
-                                "image_url" to "https://picsum.photos/seed/${name}/400"
-                            )
 
-                            RetrofitClient.instance.addItem(data).enqueue(object : Callback<ApiResponse> {
-                                override fun onResponse(call: Call<ApiResponse>, r: Response<ApiResponse>) {
-                                    if (r.isSuccessful) {
-                                        showSuccessScreen = true // Play success animation
-                                    } else {
-                                        // Shows Flask error code (e.g., 404 or 500)
-                                        Toast.makeText(context, "Error: ${r.code()}", Toast.LENGTH_LONG).show()
+                        // --- FRIEND'S CLOUDINARY FIX INJECTED HERE ---
+                        MediaManager.get().upload(imageUri)
+                            .callback(object : UploadCallback {
+                                override fun onStart(requestId: String) {}
+                                override fun onProgress(requestId: String, bytes: Long, totalBytes: Long) {}override fun onSuccess(requestId: String, resultData: Map<*, *>) {
+                                    // Force it to string, and check both "secure_url" and standard "url"
+                                    val secureUrl = resultData["secure_url"]?.toString() ?: resultData["url"]?.toString() ?: ""
+
+                                    if (secureUrl.isEmpty()) {
+                                        Toast.makeText(context, "Cloudinary upload failed to return a URL!", Toast.LENGTH_LONG).show()
                                     }
-                                    isUploading = false
+
+                                    val data = mapOf(
+                                        "name" to name,
+                                        "price" to price,
+                                        "description" to desc,
+                                        "category" to selectedCategory,
+                                        "email" to userEmail,
+                                        "image_url" to secureUrl // Sends the real URL to Flask
+                                    )
+
+                                    // ... RetrofitClient.instance.addItem(data)... stays exactly the same
+
+                                    // Now send the data to Flask
+                                    RetrofitClient.instance.addItem(data).enqueue(object : Callback<ApiResponse> {
+                                        override fun onResponse(call: Call<ApiResponse>, r: Response<ApiResponse>) {
+                                            if (r.isSuccessful) {
+                                                showSuccessScreen = true
+                                            } else {
+                                                Toast.makeText(context, "Error: ${r.code()}", Toast.LENGTH_LONG).show()
+                                            }
+                                            isUploading = false
+                                        }
+
+                                        override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
+                                            Toast.makeText(context, "Failed: ${t.message}", Toast.LENGTH_LONG).show()
+                                            isUploading = false
+                                        }
+                                    })
                                 }
 
-                                override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
-                                    // Shows network connection issues
-                                    Toast.makeText(context, "Failed: ${t.message}", Toast.LENGTH_LONG).show()
+                                override fun onError(requestId: String?, error: ErrorInfo?) {
                                     isUploading = false
+                                    Toast.makeText(context, "Image Upload Failed: ${error?.description}", Toast.LENGTH_LONG).show()
                                 }
-                            })
-                        } catch (e: Exception) {
-                            Toast.makeText(context, "Crash: ${e.message}", Toast.LENGTH_LONG).show()
-                            isUploading = false
-                        }
+
+                                override fun onReschedule(requestId: String?, error: ErrorInfo?) {}
+                            }).dispatch()
                     }
                 ) {
                     if (isUploading) {
