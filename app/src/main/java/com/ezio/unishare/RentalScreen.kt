@@ -20,16 +20,24 @@ import coil.compose.AsyncImage
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import android.util.Log
+import okhttp3.ResponseBody
+
 
 @Composable
 fun RentalScreen(userEmail: String, modifier: Modifier = Modifier) {
-    // 1. Using RentalRequest for items the user is renting
     var itemsIRented by remember { mutableStateOf<List<RentalRequest>>(emptyList()) }
-    // 2. Using RentalItem for items the user listed
     var itemsIRentedOut by remember { mutableStateOf<List<RentalItem>>(emptyList()) }
 
     var isLoadingRented by remember { mutableStateOf(true) }
     var isLoadingRentedOut by remember { mutableStateOf(true) }
+
+    var historyItems by remember { mutableStateOf<List<RentalRequest>>(emptyList()) }
+    var isLoadingHistory by remember { mutableStateOf(true) }
+
+    var refreshTrigger by remember { mutableStateOf(0) }
 
     // Fetch items I'm renting
     LaunchedEffect(userEmail) {
@@ -46,7 +54,7 @@ fun RentalScreen(userEmail: String, modifier: Modifier = Modifier) {
         })
     }
 
-    // Fetch items I listed/rented out
+    // Fetch items I listed
     LaunchedEffect(userEmail) {
         RetrofitClient.instance.getMyListedItems(userEmail).enqueue(object : Callback<List<RentalItem>> {
             override fun onResponse(call: Call<List<RentalItem>>, response: Response<List<RentalItem>>) {
@@ -61,7 +69,51 @@ fun RentalScreen(userEmail: String, modifier: Modifier = Modifier) {
         })
     }
 
-    val tabs = listOf("Renting", "My Listings")
+    //History
+    LaunchedEffect(userEmail) {
+        RetrofitClient.instance.getRentalHistory(userEmail).enqueue(object : Callback<List<RentalRequest>> {
+            override fun onResponse(call: Call<List<RentalRequest>>, response: Response<List<RentalRequest>>) {
+                if (response.isSuccessful) {
+                    historyItems = response.body() ?: emptyList()
+                }
+                isLoadingHistory = false
+            }
+            override fun onFailure(call: Call<List<RentalRequest>>, t: Throwable) {
+                isLoadingHistory = false
+            }
+        })
+    }
+
+    // Updated LaunchedEffect to use your existing variables
+    LaunchedEffect(userEmail, refreshTrigger) {
+        RetrofitClient.instance.getMyListedItems(userEmail).enqueue(object : Callback<List<RentalItem>> {
+            override fun onResponse(call: Call<List<RentalItem>>, response: Response<List<RentalItem>>) {
+                if (response.isSuccessful) {
+                    // Use 'itemsIRentedOut' which is already defined at the top of your screen
+                    itemsIRentedOut = response.body() ?: emptyList()
+                }
+                isLoadingRentedOut = false
+            }
+            override fun onFailure(call: Call<List<RentalItem>>, t: Throwable) {
+                isLoadingRentedOut = false
+            }
+        })
+
+        // Also re-fetch history so it stays in sync
+        RetrofitClient.instance.getRentalHistory(userEmail).enqueue(object : Callback<List<RentalRequest>> {
+            override fun onResponse(call: Call<List<RentalRequest>>, response: Response<List<RentalRequest>>) {
+                if (response.isSuccessful) {
+                    historyItems = response.body() ?: emptyList()
+                }
+                isLoadingHistory = false
+            }
+            override fun onFailure(call: Call<List<RentalRequest>>, t: Throwable) {
+                isLoadingHistory = false
+            }
+        })
+    }
+
+    val tabs = listOf("Renting", "My Listings", "History")
     var selectedTab by remember { mutableStateOf(0) }
 
     Column(
@@ -108,21 +160,69 @@ fun RentalScreen(userEmail: String, modifier: Modifier = Modifier) {
                     )
                 }
             }
+
             1 -> {
                 if (isLoadingRentedOut) {
                     LoadingState()
                 } else {
                     MyListingsTabContent(
-                        items = itemsIRentedOut,
+                        rentalItems = itemsIRentedOut,
                         emptyMessage = "You haven't listed any items yet",
-                        emptySubMessage = "Tap + on the home screen to list an item!"
+                        emptySubMessage = "Tap + on the home screen to list an item!",
+                        onDeleteItem = { itemId ->
+                            // Your existing Delete logic
+                            val body = mapOf("item_id" to itemId.toString(), "email" to userEmail)
+                            RetrofitClient.instance.deleteItem(body).enqueue(object : Callback<Map<String, String>> {
+                                override fun onResponse(call: Call<Map<String, String>>, response: Response<Map<String, String>>) {
+                                    if (response.isSuccessful) {
+                                        itemsIRentedOut = itemsIRentedOut.filter { it.item_id != itemId }
+                                    }
+                                }
+                                override fun onFailure(call: Call<Map<String, String>>, t: Throwable) {
+                                    Log.e("DELETE", "Error: ${t.message}")
+                                }
+                            })
+                        },
+                        onReturnItem = { itemId ->
+                            val body = mapOf("item_id" to itemId.toString())
+
+                            RetrofitClient.instance.returnItem(body).enqueue(object : Callback<Map<String, String>> {
+                                override fun onResponse(call: Call<Map<String, String>>, response: Response<Map<String, String>>) {
+                                    if (response.isSuccessful) {
+                                        // 1. Increment the master switch to force a re-fetch of all lists
+                                        refreshTrigger++
+
+                                        // 2. Log for debugging
+                                        Log.d("RETURN", "Database updated successfully. Refreshing lists...")
+                                    } else {
+                                        Log.e("RETURN", "Server error: ${response.code()}")
+                                    }
+                                }
+
+                                override fun onFailure(call: Call<Map<String, String>>, t: Throwable) {
+                                    Log.e("RETURN", "Network Error: ${t.message}")
+                                }
+                            })
+                        } ,
+                        onReturnSuccess = { refreshTrigger++ }
+                    )
+                }
+            }
+
+            2 -> { // NEW HISTORY TAB
+                if (isLoadingHistory) {
+                    LoadingState()
+                } else {
+                    RentingTabContent(
+                        items = historyItems,
+                        emptyMessage = "No history yet",
+                        emptySubMessage = "Past rentals will show up here."
                     )
                 }
             }
         }
     }
 }
-
 @Composable
 fun LoadingState() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -130,7 +230,6 @@ fun LoadingState() {
     }
 }
 
-// --- TAB 1: ITEMS I AM RENTING (Uses RentalRequest) ---
 @Composable
 fun RentingTabContent(items: List<RentalRequest>, emptyMessage: String, emptySubMessage: String) {
     if (items.isEmpty()) {
@@ -146,11 +245,10 @@ fun RentingTabContent(items: List<RentalRequest>, emptyMessage: String, emptySub
 
 @Composable
 fun MyRentalCard(item: RentalRequest) {
-    // Dynamic colors based on request status
     val statusColor = when (item.status.lowercase()) {
-        "pending" -> Color(0xFFFFA000) // Amber/Yellow
-        "accepted" -> Color(0xFF388E3C) // Green
-        "rejected" -> Color(0xFFD32F2F) // Red
+        "pending" -> Color(0xFFFFA000)
+        "accepted" -> Color(0xFF388E3C)
+        "rejected" -> Color(0xFFD32F2F)
         else -> Color.Gray
     }
 
@@ -159,7 +257,10 @@ fun MyRentalCard(item: RentalRequest) {
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             AsyncImage(
                 model = item.image_url,
                 contentDescription = item.name,
@@ -172,11 +273,14 @@ fun MyRentalCard(item: RentalRequest) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = item.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1)
                 Spacer(modifier = Modifier.height(4.dp))
-                // Uses price_per_day matching the RentalRequest model
                 Text(text = "₹${item.price_per_day}/day", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+
+                if (item.status.lowercase() == "accepted" && !item.accepted_at.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    RentalTimer(acceptedAt = item.accepted_at, totalDays = item.rental_days)
+                }
             }
 
-            // Status Badge
             Surface(
                 color = statusColor.copy(alpha = 0.1f),
                 shape = RoundedCornerShape(8.dp),
@@ -196,28 +300,54 @@ fun MyRentalCard(item: RentalRequest) {
 
 // --- TAB 2: ITEMS I HAVE LISTED (Uses RentalItem) ---
 @Composable
-fun MyListingsTabContent(items: List<RentalItem>, emptyMessage: String, emptySubMessage: String) {
-    if (items.isEmpty()) {
+fun MyListingsTabContent(
+    rentalItems: List<RentalItem>,
+    emptyMessage: String,
+    emptySubMessage: String,
+    onDeleteItem: (Int) -> Unit,
+    onReturnItem: (Int) -> Unit ,// Added this parameter
+    onReturnSuccess: () -> Unit
+) {
+    if (rentalItems.isEmpty()) {
         EmptyStateMessage(emptyMessage, emptySubMessage)
     } else {
-        LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(items) { item ->
-                MyListingCard(item = item)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(rentalItems) { rentalItem ->
+                MyListingCard(
+                    item = rentalItem,
+                    onDeleteClick = { id -> onDeleteItem(id) },
+                    onReturnClick = { id -> onReturnItem(id) } ,// Pass it to the card
+                    onReturnSuccess = onReturnSuccess
+                )
             }
         }
     }
 }
 
 @Composable
-fun MyListingCard(item: RentalItem) {
+fun MyListingCard(
+    item: RentalItem,
+    onReturnSuccess: () -> Unit,
+    onDeleteClick: (Int) -> Unit = {},
+    onReturnClick: (Int) -> Unit = {} // Added this parameter
+
+) {
+    var isReturning by remember { mutableStateOf(false) }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             AsyncImage(
-                model = item.imageUrl, // Uses imageUrl matching RentalItem model
+                model = item.imageUrl,
                 contentDescription = item.name,
                 modifier = Modifier.size(80.dp).clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop
@@ -228,20 +358,80 @@ fun MyListingCard(item: RentalItem) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = item.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1)
                 Spacer(modifier = Modifier.height(4.dp))
-                // Uses price matching RentalItem model
                 Text(text = "₹${item.price}/day", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Show availability status
-                val availText = if (item.is_available) "Available" else "Rented Out"
-                val availColor = if (item.is_available) Color.Gray else MaterialTheme.colorScheme.primary
-                Text(text = "Status: $availText", style = MaterialTheme.typography.bodySmall, color = availColor)
+                if (!item.is_available) {
+                    // This section shows when the item is Rented Out
+                    Text(text = "Status: Rented Out", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+
+                    Button(
+                        onClick = {
+                            isReturning = true // Start loading immediately
+                            val requestData = mapOf(
+                                "rental_id" to item.rental_id,
+                                "item_id" to item.item_id
+                            )
+
+                            RetrofitClient.instance.markReturned(requestData).enqueue(object : Callback<ResponseBody> {
+                                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                                    if (response.isSuccessful) {
+                                        isReturning = false
+                                        onReturnSuccess()
+                                        // Item will be removed by your screen refresh logic
+                                    } else {
+                                        isReturning = false // Stop spinner if server fails
+                                    }
+                                }
+
+                                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                                    isReturning = false // Stop spinner if network fails
+                                }
+                            })
+                        },
+                        enabled = !isReturning, // Disable button to prevent double-clicks
+                        modifier = Modifier.padding(top = 4.dp).height(32.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f)
+                        )
+                    ) {
+                        if (isReturning) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = MaterialTheme.colorScheme.onSecondary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Mark Returned", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+
+                    if (item.accepted_at != null && item.rental_days != null) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        RentalTimer(acceptedAt = item.accepted_at!!, totalDays = item.rental_days!!)
+                    }
+                } else {
+                    Text(text = "Status: Available", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                }
             }
 
-            AssistChip(onClick = {}, label = { Text(item.category, style = MaterialTheme.typography.labelSmall) })
+            Column(horizontalAlignment = Alignment.End) {
+                if (item.is_available) {
+                    IconButton(
+                        onClick = { onDeleteClick(item.item_id) },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                    }
+                }
+                AssistChip(onClick = {}, label = { Text(item.category, style = MaterialTheme.typography.labelSmall) })
+            }
         }
     }
 }
+
 
 @Composable
 fun EmptyStateMessage(title: String, subtitle: String) {
@@ -254,8 +444,40 @@ fun EmptyStateMessage(title: String, subtitle: String) {
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun RentalScreenPreview() {
-    MaterialTheme { RentalScreen(userEmail = "test@tkmce.ac.in") }
+fun RentalTimer(acceptedAt: String, totalDays: Int) {
+    var timeLeft by remember { mutableStateOf("Calculating...") }
+
+    LaunchedEffect(acceptedAt) {
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+        try {
+            val startTime = sdf.parse(acceptedAt)?.time ?: 0L
+            val expiryTime = startTime + (totalDays * 24 * 60 * 60 * 1000L)
+
+            while (true) {
+                val now = System.currentTimeMillis()
+                val diff = expiryTime - now
+
+                if (diff > 0) {
+                    val hours = diff / (1000 * 60 * 60)
+                    val minutes = (diff / (1000 * 60)) % 60
+                    val seconds = (diff / 1000) % 60
+                    timeLeft = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                } else {
+                    timeLeft = "Expired"
+                    break
+                }
+                kotlinx.coroutines.delay(1000)
+            }
+        } catch (e: Exception) {
+            timeLeft = "Error"
+        }
+    }
+
+    Text(
+        text = "Time Left: $timeLeft",
+        style = MaterialTheme.typography.bodySmall,
+        fontWeight = FontWeight.Bold,
+        color = if (timeLeft == "Expired") Color.Red else MaterialTheme.colorScheme.primary
+    )
 }

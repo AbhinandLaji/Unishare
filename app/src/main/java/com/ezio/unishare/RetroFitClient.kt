@@ -7,6 +7,7 @@ import retrofit2.http.POST
 import retrofit2.http.GET
 import retrofit2.Call
 import retrofit2.http.Query
+import okhttp3.ResponseBody
 
 interface ApiService {
     @POST("register")
@@ -50,6 +51,18 @@ interface ApiService {
 
     @GET("pending_count")
     fun getPendingCount(@Query("email") email: String): Call<ApiResponse>
+
+    @POST("delete_item")
+    fun deleteItem(@Body body: Map<String, String>): Call<Map<String, String>>
+
+    @POST("return_item")
+    fun returnItem(@Body body: Map<String, String>): Call<Map<String, String>>
+
+    @GET("rental_history")
+    fun getRentalHistory(@Query("email") email: String): Call<List<RentalRequest>>
+
+    @POST("mark_returned")
+    fun markReturned(@Body body: Map<String, Int>): Call<ResponseBody>
 
 
 }
